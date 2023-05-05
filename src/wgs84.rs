@@ -40,7 +40,7 @@ const WGS84_F: f64 = (WGS84_A - WGS84_B) / WGS84_A;
 const WGS84_E_SQ: f64 = WGS84_F * (2.0 - WGS84_F);
 
 impl CoordinateSystem for WGS84 {
-    fn lle_to_xyz(self, g: LLE) -> XYZ {
+    fn lle_to_xyz(g: LLE) -> XYZ {
         let lambda = g.latitude.to_radians().0;
         let phi = g.longitude.to_radians().0;
         let sin_lambda = lambda.sin();
@@ -56,7 +56,7 @@ impl CoordinateSystem for WGS84 {
         }
     }
 
-    fn xyz_to_lle(self, x: XYZ) -> LLE {
+    fn xyz_to_lle(x: XYZ) -> LLE {
         let eps = WGS84_E_SQ / (1.0 - WGS84_E_SQ);
         let p = (x.x.0 * x.x.0 + x.y.0 * x.y.0).sqrt();
         let q = (x.z.0 * WGS84_A).atan2(p * WGS84_B);
@@ -79,7 +79,7 @@ impl CoordinateSystem for WGS84 {
         }
     }
 
-    fn xyz_to_enu(self, g: LLE, x: XYZ) -> ENU {
+    fn xyz_to_enu(g: LLE, x: XYZ) -> ENU {
         let lambda = g.latitude.to_radians().0;
         let phi = g.longitude.to_radians().0;
         let sin_lambda = lambda.sin();
@@ -87,7 +87,7 @@ impl CoordinateSystem for WGS84 {
         let sin_phi = phi.sin();
         let cos_phi = phi.cos();
 
-        let xref = self.lle_to_xyz(g);
+        let xref = WGS84::lle_to_xyz(g);
         let xd = x.x.0 - xref.x.0;
         let yd = x.y.0 - xref.y.0;
         let zd = x.z.0 - xref.z.0;
@@ -99,7 +99,7 @@ impl CoordinateSystem for WGS84 {
         }
     }
 
-    fn enu_to_xyz(self, g: LLE, lt: ENU) -> XYZ {
+    fn enu_to_xyz(g: LLE, lt: ENU) -> XYZ {
         let lambda = g.latitude.to_radians().0;
         let phi = g.longitude.to_radians().0;
         let sin_lambda = lambda.sin();
@@ -131,9 +131,9 @@ impl CoordinateSystem for WGS84 {
         }
     }
 
-    fn lle_to_enu(self, r: LLE, geo: LLE) -> ENU {
-        let xyz = self.lle_to_xyz(geo);
-        self.xyz_to_enu(r, xyz)
+    fn lle_to_enu(r: LLE, geo: LLE) -> ENU {
+        let xyz = WGS84::lle_to_xyz(geo);
+        WGS84::xyz_to_enu(r, xyz)
     }
 }
 
@@ -158,7 +158,7 @@ mod tests {
             longitude: Degrees(-117.3335693),
             elevation: Meters(251.702),
         };
-        let refx = WGS84.lle_to_xyz(g);
+        let refx = WGS84::lle_to_xyz(g);
         assert_in_eps!(-2430601.8, refx.x.0, 0.1);
         assert_in_eps!(-4702442.7, refx.y.0, 0.1);
         assert_in_eps!(3546587.4, refx.z.0, 0.1);
@@ -178,10 +178,10 @@ mod tests {
             elevation: Meters(100.0),
         };
 
-        let positionx = WGS84.lle_to_xyz(position);
-        let positionenu = WGS84.xyz_to_enu(refr, positionx);
-        let positionxx1 = WGS84.enu_to_xyz(refr, positionenu);
-        let position1 = WGS84.xyz_to_lle(positionxx1);
+        let positionx = WGS84::lle_to_xyz(position);
+        let positionenu = WGS84::xyz_to_enu(refr, positionx);
+        let positionxx1 = WGS84::enu_to_xyz(refr, positionenu);
+        let position1 = WGS84::xyz_to_lle(positionxx1);
 
         assert_in_eps!(position.latitude.0, position1.latitude.0, 1e-7);
         assert_in_eps!(position.longitude.0, position1.longitude.0, 1e-7);
@@ -195,14 +195,14 @@ mod tests {
             longitude: Degrees(-117.3335693),
             elevation: Meters(251.702),
         };
-        let refx = WGS84.lle_to_xyz(refr);
+        let refx = WGS84::lle_to_xyz(refr);
 
         let point = XYZ{
             x: Meters(refx.x.0 + 1.0),
             y: refx.y,
             z: refx.z,
         };
-        let pointenu = WGS84.xyz_to_enu(refr, point);
+        let pointenu = WGS84::xyz_to_enu(refr, point);
 
         assert_in_eps!(0.88834836, pointenu.east.0, 0.1);
         assert_in_eps!(0.25676467, pointenu.north.0, 0.1);
@@ -213,7 +213,7 @@ mod tests {
             y: Meters(refx.y.0 + 1.0),
             z: refx.z,
         };
-        let pointenu = WGS84.xyz_to_enu(refr, point);
+        let pointenu = WGS84::xyz_to_enu(refr, point);
         assert_in_eps!(-0.45917011, pointenu.east.0, 0.1);
         assert_in_eps!(0.49675810, pointenu.north.0, 0.1);
         assert_in_eps!(-0.73647416, pointenu.up.0, 0.1);
@@ -223,7 +223,7 @@ mod tests {
             y: refx.y,
             z: Meters(refx.z.0 + 1.0),
         };
-        let pointenu = WGS84.xyz_to_enu(refr, point);
+        let pointenu = WGS84::xyz_to_enu(refr, point);
         assert_eq!(0.0, pointenu.east.0);
         assert_in_eps!(0.82903757, pointenu.north.0, 0.1);
         assert_in_eps!(0.55919291, pointenu.up.0, 0.1);
@@ -257,14 +257,14 @@ mod tests {
             elevation: Meters(30.0),
         };
 
-        let positionx = WGS84.lle_to_xyz(position);
-        let positionenu = WGS84.xyz_to_enu(refr, positionx);
+        let positionx = WGS84::lle_to_xyz(position);
+        let positionenu = WGS84::xyz_to_enu(refr, positionx);
 
         let aed = positionenu.to_aer();
         let positionenu1 = aed.to_enu();
 
-        let positionx1 = WGS84.enu_to_xyz(refr, positionenu1);
-        let position1 = WGS84.xyz_to_lle(positionx1);
+        let positionx1 = WGS84::enu_to_xyz(refr, positionenu1);
+        let position1 = WGS84::xyz_to_lle(positionx1);
 
         assert_in_eps!(position.latitude.0, position1.latitude.0, 1e-7);
         assert_in_eps!(position.longitude.0, position1.longitude.0, 1e-7);

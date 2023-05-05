@@ -29,11 +29,11 @@ pub use crate::wgs84::{WGS84};
 
 /// Meters represent the SI unit of measure, Meter
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Meters(f64);
+pub struct Meters(pub f64);
 
 /// Degrees is an angular measure that ranges from 0 to 360 (sometimes negative)
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Degrees(f64);
+pub struct Degrees(pub f64);
 
 impl Degrees {
     // to_radians will convert the Degrees to Radians.
@@ -44,7 +44,7 @@ impl Degrees {
 
 /// Radians is an angular measure that ranges from 0 to 2π (𝜏).
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Radians(f64);
+pub struct Radians(pub f64);
 
 impl Radians {
     /// to_radians will convert the Radians to Degrees.
@@ -60,9 +60,9 @@ impl Radians {
 /// This is a *absolute* and *angular* measure.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct LLE {
-    latitude: Degrees,
-    longitude: Degrees,
-    elevation: Meters,
+    pub latitude: Degrees,
+    pub longitude: Degrees,
+    pub elevation: Meters,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -106,9 +106,9 @@ impl LLE {
 /// This is a *absolute* and *cartesian* measure.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct XYZ {
-    x: Meters,
-    y: Meters,
-    z: Meters,
+    pub x: Meters,
+    pub y: Meters,
+    pub z: Meters,
 }
 
 /// AER represents an Azimuth, Elevation, and Range measurement.
@@ -120,9 +120,9 @@ pub struct XYZ {
 /// This is a *relative* and *angular* measure.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct AER {
-    azimuth: Degrees,
-    elevation: Degrees,
-    range: Meters,
+    pub azimuth: Degrees,
+    pub elevation: Degrees,
+    pub range: Meters,
 }
 
 impl AER {
@@ -148,9 +148,9 @@ impl AER {
 /// This is a *relative* and *cartesian* measure.
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct ENU {
-    east: Meters,
-    north: Meters,
-    up: Meters,
+    pub east: Meters,
+    pub north: Meters,
+    pub up: Meters,
 }
 
 impl ENU {
@@ -176,22 +176,22 @@ impl ENU {
 /// or significant errors can be introduced.
 pub trait CoordinateSystem {
     /// lle_to_xyz will convert between Lat/Lon and ECEF style coordiantes.
-    fn lle_to_xyz(self, geo: LLE) -> XYZ;
+    fn lle_to_xyz(geo: LLE) -> XYZ;
 
     /// xyz_to_lle will convert between ECEF and Lat/Lon style coordinates.
-    fn xyz_to_lle(self, c: XYZ) -> LLE;
+    fn xyz_to_lle(c: XYZ) -> LLE;
 
     /// xyz_to_enu will convert an ECEF coordinate as observed at a Lat/Lon
     /// into a local tangent plane East/North/Up coordinate.
-    fn xyz_to_enu(self, refr: LLE, c: XYZ) -> ENU;
+    fn xyz_to_enu(refr: LLE, c: XYZ) -> ENU;
 
     /// enu_to_xyz will convert an East/North/Up coordinate as observed at a
     /// Lat/Lon into a ECEF coordinate.
-    fn enu_to_xyz(self, refr: LLE, c: ENU) -> XYZ;
+    fn enu_to_xyz(refr: LLE, c: ENU) -> XYZ;
 
     /// lle_to_enu will convert a Lat/Lon as seen by another Lat/Lon into a
     /// local tangent plane East/North/Up coordinate.
-    fn lle_to_enu(self, refr: LLE, geo: LLE) -> ENU;
+    fn lle_to_enu(refr: LLE, geo: LLE) -> ENU;
 }
 
 #[cfg(test)]
