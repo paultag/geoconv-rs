@@ -25,20 +25,46 @@
 
 mod wgs84;
 
-pub use crate::wgs84::{WGS84};
+pub use crate::wgs84::WGS84;
 
 /// Meters represent the SI unit of measure, Meter
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Meters(pub f64);
+pub struct Meters(f64);
+
+impl Meters {
+    /// new will create a new Meters struct, initialized with the provided
+    /// distance, in meters.
+    pub fn new(meters: f64) -> Meters {
+        Meters(meters)
+    }
+
+    /// to_float will return the number of meters as a floating point number.
+    /// This number may be less than 0 (for distances less than a meter), or
+    /// very large (for kilometers, etc).
+    pub fn to_float(self) -> f64 {
+        self.0
+    }
+}
 
 /// Degrees is an angular measure that ranges from 0 to 360 (sometimes negative)
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct Degrees(pub f64);
+pub struct Degrees(f64);
 
 impl Degrees {
-    // to_radians will convert the Degrees to Radians.
+    /// new will create a new Degrees struct, initialized with the provided
+    /// number of degrees, either between 0 and 360 or -180 to +180.
+    pub fn new(degrees: f64) -> Degrees {
+        Degrees(degrees)
+    }
+
+    /// to_radians will convert the Degrees to Radians.
     pub fn to_radians(self) -> Radians {
-        return Radians(std::f64::consts::PI / 180.0 * self.0);
+        Radians::new(std::f64::consts::PI / 180.0 * self.to_float())
+    }
+
+    /// to_float will return the Degrees as a floating point number.
+    pub fn to_float(self) -> f64 {
+        self.0
     }
 }
 
@@ -47,9 +73,21 @@ impl Degrees {
 pub struct Radians(pub f64);
 
 impl Radians {
+    /// new will create a new Radians struct, initialized with the provided
+    /// number of radians, ranging between 0 and to 2π (𝜏).
+    pub fn new(radians: f64) -> Radians {
+        Radians(radians)
+    }
+
     /// to_radians will convert the Radians to Degrees.
     pub fn to_degrees(self) -> Degrees {
-        return Degrees(180.0 / std::f64::consts::PI * self.0)
+        Degrees::new(180.0 / std::f64::consts::PI * self.to_float())
+    }
+
+    /// to_float will return the Radians as a floating point number from 0
+    /// to 2π (𝜏).
+    pub fn to_float(self) -> f64 {
+        self.0
     }
 }
 
@@ -71,7 +109,6 @@ pub struct MustNotHaveElevationError;
 const EARTH_RADIUS: Meters = Meters(6371000.0);
 
 impl LLE {
-
     /// haversine_distance will compute the great-circle distance between two
     /// points. Since implementing this in 3-D is fairly tricky, this is the
     /// *2D* distance between two Lat/Lon, not the 3D great-circle distance
@@ -80,22 +117,23 @@ impl LLE {
     /// As such, passing in any Elevation other than '0.0' will result in an
     /// error ('MustNotHaveElevationError').
     pub fn haversine_distance(self, other: LLE) -> Result<Meters, MustNotHaveElevationError> {
-        if self.elevation.0 != 0.0 || other.elevation.0 != 0.0 {
-            return Err(MustNotHaveElevationError)
+        if self.elevation.to_float() != 0.0 || other.elevation.to_float() != 0.0 {
+            return Err(MustNotHaveElevationError);
         }
 
-        let self_lat = self.latitude.to_radians().0;
-        let self_lon = self.longitude.to_radians().0;
-        let other_lat = other.latitude.to_radians().0;
-        let other_lon = other.longitude.to_radians().0;
+        let self_lat = self.latitude.to_radians().to_float();
+        let self_lon = self.longitude.to_radians().to_float();
+        let other_lat = other.latitude.to_radians().to_float();
+        let other_lon = other.longitude.to_radians().to_float();
 
         let delta_lat = self_lat - other_lat;
         let delta_lon = self_lon - other_lon;
 
-        let a = (delta_lat / 2.0).sin().powf(2.0) + self_lat.cos() * other_lat.cos() * (delta_lon / 2.0).sin().powf(2.0);
+        let a = (delta_lat / 2.0).sin().powf(2.0)
+            + self_lat.cos() * other_lat.cos() * (delta_lon / 2.0).sin().powf(2.0);
         let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
 
-        Ok(Meters(EARTH_RADIUS.0 * c))
+        Ok(Meters::new(EARTH_RADIUS.to_float() * c))
     }
 }
 
@@ -131,11 +169,11 @@ impl AER {
     pub fn to_enu(self) -> ENU {
         let az_rad = self.azimuth.to_radians();
         let el_rad = self.elevation.to_radians();
-        let r = Meters(self.range.0 * el_rad.0.cos());
-        ENU{
-            east: Meters(r.0 * az_rad.0.sin()),
-            north: Meters(r.0 * az_rad.0.cos()),
-            up: Meters(self.range.0 * el_rad.0.sin()),
+        let r = Meters::new(self.range.to_float() * el_rad.to_float().cos());
+        ENU {
+            east: Meters::new(r.to_float() * az_rad.to_float().sin()),
+            north: Meters::new(r.to_float() * az_rad.to_float().cos()),
+            up: Meters::new(self.range.to_float() * el_rad.to_float().sin()),
         }
     }
 }
@@ -157,12 +195,15 @@ impl ENU {
     /// to_aer will convert to the Azimuth-Elevation-Range angular local tangent
     /// plane system.
     pub fn to_aer(self) -> AER {
-        let r = (self.east.0 * self.east.0 + self.north.0 * self.north.0).sqrt();
+        let r = (self.east.to_float() * self.east.to_float()
+            + self.north.to_float() * self.north.to_float())
+        .sqrt();
         let tau = std::f64::consts::PI * 2.0;
-        AER{
-            azimuth: Radians(self.east.0.atan2(self.north.0) % tau).to_degrees(),
-            elevation: Radians(self.up.0.atan2(r)).to_degrees(),
-            range: Meters((r * r + self.up.0 * self.up.0).sqrt()),
+        AER {
+            azimuth: Radians::new(self.east.to_float().atan2(self.north.to_float()) % tau)
+                .to_degrees(),
+            elevation: Radians::new(self.up.to_float().atan2(r)).to_degrees(),
+            range: Meters::new((r * r + self.up.to_float() * self.up.to_float()).sqrt()),
         }
     }
 }
@@ -200,62 +241,64 @@ mod tests {
 
     #[test]
     fn degrees_to_radians() {
-        let result = Degrees(180.0).to_radians();
-        assert_eq!(result.0, std::f64::consts::PI);
+        let result = Degrees::new(180.0).to_radians();
+        assert_eq!(result.to_float(), std::f64::consts::PI);
     }
 
     #[test]
     fn radians_to_degrees() {
-        let result = Radians(std::f64::consts::PI).to_degrees();
-        assert_eq!(result.0, 180.0);
+        let result = Radians::new(std::f64::consts::PI).to_degrees();
+        assert_eq!(result.to_float(), 180.0);
     }
 
     macro_rules! assert_in_eps {
         ($x:expr, $y:expr, $d:expr) => {
-            if !($x - $y < $d && $y - $x < $d) { panic!(); }
-        }
+            if !($x - $y < $d && $y - $x < $d) {
+                panic!();
+            }
+        };
     }
 
     #[test]
     fn haversine_known() {
-        let pointa = LLE{
-            latitude: Degrees(22.55),
-            longitude: Degrees(43.12),
-            elevation: Meters(0.0),
+        let pointa = LLE {
+            latitude: Degrees::new(22.55),
+            longitude: Degrees::new(43.12),
+            elevation: Meters::new(0.0),
         };
-        let pointb = LLE{
-            latitude: Degrees(13.45),
-            longitude: Degrees(100.28),
-            elevation: Meters(0.0),
+        let pointb = LLE {
+            latitude: Degrees::new(13.45),
+            longitude: Degrees::new(100.28),
+            elevation: Meters::new(0.0),
         };
         let result = pointa.haversine_distance(pointb).expect("distance");
-        assert_in_eps!(6094544.408786774, result.0, 1e-6);
+        assert_in_eps!(6094544.408786774, result.to_float(), 1e-6);
 
-        let pointa = LLE{
-            latitude: Degrees(51.510357),
-            longitude: Degrees(-0.116773),
-            elevation: Meters(0.0),
+        let pointa = LLE {
+            latitude: Degrees::new(51.510357),
+            longitude: Degrees::new(-0.116773),
+            elevation: Meters::new(0.0),
         };
-        let pointb = LLE{
-            latitude: Degrees(38.889931),
-            longitude: Degrees(-77.009003),
-            elevation: Meters(0.0),
+        let pointb = LLE {
+            latitude: Degrees::new(38.889931),
+            longitude: Degrees::new(-77.009003),
+            elevation: Meters::new(0.0),
         };
         let result = pointa.haversine_distance(pointb).expect("distance");
-        assert_in_eps!(5897658.288856054, result.0, 1e-6);
+        assert_in_eps!(5897658.288856054, result.to_float(), 1e-6);
     }
 
     #[test]
     fn haversine_elevation() {
-        let pointa = LLE{
-            latitude: Degrees(51.510357),
-            longitude: Degrees(-0.116773),
-            elevation: Meters(0.0),
+        let pointa = LLE {
+            latitude: Degrees::new(51.510357),
+            longitude: Degrees::new(-0.116773),
+            elevation: Meters::new(0.0),
         };
-        let pointb = LLE{
-            latitude: Degrees(38.889931),
-            longitude: Degrees(-77.009003),
-            elevation: Meters(10.0),
+        let pointb = LLE {
+            latitude: Degrees::new(38.889931),
+            longitude: Degrees::new(-77.009003),
+            elevation: Meters::new(10.0),
         };
 
         assert!(pointa.haversine_distance(pointb).is_err());
