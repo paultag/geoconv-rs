@@ -130,11 +130,6 @@ impl CoordinateSystem for WGS84 {
             z: Meters::new(z),
         }
     }
-
-    fn lle_to_enu(r: LLE, geo: LLE) -> ENU {
-        let xyz = WGS84::lle_to_xyz(geo);
-        WGS84::xyz_to_enu(r, xyz)
-    }
 }
 
 #[cfg(test)]

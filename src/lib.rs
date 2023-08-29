@@ -216,9 +216,6 @@ impl ENU {
 /// a Latitude / Longitude must be understood within its CoordinateSystem,
 /// or significant errors can be introduced.
 pub trait CoordinateSystem {
-    /// lle_to_xyz will convert between Lat/Lon and ECEF style coordiantes.
-    fn lle_to_xyz(geo: LLE) -> XYZ;
-
     /// xyz_to_lle will convert between ECEF and Lat/Lon style coordinates.
     fn xyz_to_lle(c: XYZ) -> LLE;
 
@@ -230,9 +227,22 @@ pub trait CoordinateSystem {
     /// Lat/Lon into a ECEF coordinate.
     fn enu_to_xyz(refr: LLE, c: ENU) -> XYZ;
 
+    /// lle_to_xyz will convert between Lat/Lon and ECEF style coordiantes.
+    fn lle_to_xyz(geo: LLE) -> XYZ;
+
+    /// enu_to_lle will convert an East/North/Up coordinate as observed at a
+    /// Lat/Lon into a LLE coordinate.
+    fn enu_to_lle(refr: LLE, c: ENU) -> LLE {
+        let xyz = Self::enu_to_xyz(refr, c);
+        Self::xyz_to_lle(xyz)
+    }
+
     /// lle_to_enu will convert a Lat/Lon as seen by another Lat/Lon into a
     /// local tangent plane East/North/Up coordinate.
-    fn lle_to_enu(refr: LLE, geo: LLE) -> ENU;
+    fn lle_to_enu(r: LLE, geo: LLE) -> ENU {
+        let xyz = Self::lle_to_xyz(geo);
+        Self::xyz_to_enu(r, xyz)
+    }
 }
 
 #[cfg(test)]
