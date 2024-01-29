@@ -16,8 +16,8 @@ fn main() {
     let look = WGS84::lle_to_enu(tea_party, georges_island).to_aer();
     println!(
         "Azimuth: {} deg, Elevation: {} deg, Range: {} meters",
-        look.azimuth.to_float(),
-        look.elevation.to_float(),
-        look.range.to_float()
+        look.azimuth.as_float(),
+        look.elevation.as_float(),
+        look.range.as_float()
     );
 }

@@ -15,5 +15,5 @@ fn main() {
     let distance = tea_party
         .haversine_distance(georges_island)
         .expect("haversine");
-    println!("Distance: {} meters", distance.to_float());
+    println!("Distance: {} meters", distance.as_float());
 }

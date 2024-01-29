@@ -38,10 +38,10 @@ impl Meters {
         Meters(meters)
     }
 
-    /// to_float will return the number of meters as a floating point number.
+    /// as_float will return the number of meters as a floating point number.
     /// This number may be less than 0 (for distances less than a meter), or
     /// very large (for kilometers, etc).
-    pub fn to_float(self) -> f64 {
+    pub fn as_float(self) -> f64 {
         self.0
     }
 }
@@ -57,14 +57,15 @@ impl Degrees {
         Degrees(degrees)
     }
 
-    /// to_radians will convert the Degrees to Radians.
-    pub fn to_radians(self) -> Radians {
-        Radians::new(std::f64::consts::PI / 180.0 * self.to_float())
-    }
-
-    /// to_float will return the Degrees as a floating point number.
-    pub fn to_float(self) -> f64 {
+    /// as_float will return the Degrees as a floating point number.
+    pub fn as_float(self) -> f64 {
         self.0
+    }
+}
+
+impl From<Degrees> for Radians {
+    fn from(deg: Degrees) -> Self {
+        Radians::new(std::f64::consts::PI / 180.0 * deg.as_float())
     }
 }
 
@@ -79,15 +80,16 @@ impl Radians {
         Radians(radians)
     }
 
-    /// to_radians will convert the Radians to Degrees.
-    pub fn to_degrees(self) -> Degrees {
-        Degrees::new(180.0 / std::f64::consts::PI * self.to_float())
-    }
-
-    /// to_float will return the Radians as a floating point number from 0
+    /// as_float will return the Radians as a floating point number from 0
     /// to 2π (𝜏).
-    pub fn to_float(self) -> f64 {
+    pub fn as_float(self) -> f64 {
         self.0
+    }
+}
+
+impl From<Radians> for Degrees {
+    fn from(rad: Radians) -> Self {
+        Degrees::new(180.0 / std::f64::consts::PI * rad.as_float())
     }
 }
 
@@ -117,14 +119,19 @@ impl LLE {
     /// As such, passing in any Elevation other than '0.0' will result in an
     /// error ('MustNotHaveElevationError').
     pub fn haversine_distance(self, other: LLE) -> Result<Meters, MustNotHaveElevationError> {
-        if self.elevation.to_float() != 0.0 || other.elevation.to_float() != 0.0 {
+        if self.elevation.as_float() != 0.0 || other.elevation.as_float() != 0.0 {
             return Err(MustNotHaveElevationError);
         }
 
-        let self_lat = self.latitude.to_radians().to_float();
-        let self_lon = self.longitude.to_radians().to_float();
-        let other_lat = other.latitude.to_radians().to_float();
-        let other_lon = other.longitude.to_radians().to_float();
+        let self_lat: Radians = self.latitude.into();
+        let self_lon: Radians = self.longitude.into();
+        let other_lat: Radians = other.latitude.into();
+        let other_lon: Radians = other.longitude.into();
+
+        let self_lat = self_lat.as_float();
+        let self_lon = self_lon.as_float();
+        let other_lat = other_lat.as_float();
+        let other_lon = other_lon.as_float();
 
         let delta_lat = self_lat - other_lat;
         let delta_lon = self_lon - other_lon;
@@ -133,7 +140,7 @@ impl LLE {
             + self_lat.cos() * other_lat.cos() * (delta_lon / 2.0).sin().powf(2.0);
         let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
 
-        Ok(Meters::new(EARTH_RADIUS.to_float() * c))
+        Ok(Meters::new(EARTH_RADIUS.as_float() * c))
     }
 }
 
@@ -163,17 +170,17 @@ pub struct AER {
     pub range: Meters,
 }
 
-impl AER {
+impl From<AER> for ENU {
     /// to_enu will convert to the Earth-North-Up cartesian local tangent plane
     /// system.
-    pub fn to_enu(self) -> ENU {
-        let az_rad = self.azimuth.to_radians();
-        let el_rad = self.elevation.to_radians();
-        let r = Meters::new(self.range.to_float() * el_rad.to_float().cos());
+    fn from(aer: AER) -> Self {
+        let az_rad: Radians = aer.azimuth.into();
+        let el_rad: Radians = aer.elevation.into();
+        let r = Meters::new(aer.range.as_float() * el_rad.as_float().cos());
         ENU {
-            east: Meters::new(r.to_float() * az_rad.to_float().sin()),
-            north: Meters::new(r.to_float() * az_rad.to_float().cos()),
-            up: Meters::new(self.range.to_float() * el_rad.to_float().sin()),
+            east: Meters::new(r.as_float() * az_rad.as_float().sin()),
+            north: Meters::new(r.as_float() * az_rad.as_float().cos()),
+            up: Meters::new(aer.range.as_float() * el_rad.as_float().sin()),
         }
     }
 }
@@ -195,15 +202,14 @@ impl ENU {
     /// to_aer will convert to the Azimuth-Elevation-Range angular local tangent
     /// plane system.
     pub fn to_aer(self) -> AER {
-        let r = (self.east.to_float() * self.east.to_float()
-            + self.north.to_float() * self.north.to_float())
+        let r = (self.east.as_float() * self.east.as_float()
+            + self.north.as_float() * self.north.as_float())
         .sqrt();
         let tau = std::f64::consts::PI * 2.0;
         AER {
-            azimuth: Radians::new(self.east.to_float().atan2(self.north.to_float()) % tau)
-                .to_degrees(),
-            elevation: Radians::new(self.up.to_float().atan2(r)).to_degrees(),
-            range: Meters::new((r * r + self.up.to_float() * self.up.to_float()).sqrt()),
+            azimuth: Radians::new(self.east.as_float().atan2(self.north.as_float()) % tau).into(),
+            elevation: Radians::new(self.up.as_float().atan2(r)).into(),
+            range: Meters::new((r * r + self.up.as_float() * self.up.as_float()).sqrt()),
         }
     }
 }
@@ -250,15 +256,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn degrees_to_radians() {
-        let result = Degrees::new(180.0).to_radians();
-        assert_eq!(result.to_float(), std::f64::consts::PI);
+    fn degrees_as_radians() {
+        let result: Radians = Degrees::new(180.0).into();
+        assert_eq!(result.as_float(), std::f64::consts::PI);
     }
 
     #[test]
-    fn radians_to_degrees() {
-        let result = Radians::new(std::f64::consts::PI).to_degrees();
-        assert_eq!(result.to_float(), 180.0);
+    fn radians_as_degrees() {
+        let result: Degrees = Radians::new(std::f64::consts::PI).into();
+        assert_eq!(result.as_float(), 180.0);
     }
 
     macro_rules! assert_in_eps {
@@ -282,7 +288,7 @@ mod tests {
             elevation: Meters::new(0.0),
         };
         let result = pointa.haversine_distance(pointb).expect("distance");
-        assert_in_eps!(6094544.408786774, result.to_float(), 1e-6);
+        assert_in_eps!(6094544.408786774, result.as_float(), 1e-6);
 
         let pointa = LLE {
             latitude: Degrees::new(51.510357),
@@ -295,7 +301,7 @@ mod tests {
             elevation: Meters::new(0.0),
         };
         let result = pointa.haversine_distance(pointb).expect("distance");
-        assert_in_eps!(5897658.288856054, result.to_float(), 1e-6);
+        assert_in_eps!(5897658.288856054, result.as_float(), 1e-6);
     }
 
     #[test]
