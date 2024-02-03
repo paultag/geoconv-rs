@@ -1,19 +1,9 @@
-use geoconv::{Degrees, Meters, LLE};
+use geoconv::{haversine_distance, Degrees};
 
 fn main() {
-    let tea_party = LLE {
-        latitude: Degrees::new(42.352211),
-        longitude: Degrees::new(-71.051315),
-        elevation: Meters::new(0.0),
-    };
-    let georges_island = LLE {
-        latitude: Degrees::new(42.320239),
-        longitude: Degrees::new(-70.929482),
-        elevation: Meters::new(0.0),
-    };
+    let tea_party = (Degrees::new(42.352211), Degrees::new(-71.051315));
+    let georges_island = (Degrees::new(42.320239), Degrees::new(-70.929482));
 
-    let distance = tea_party
-        .haversine_distance(georges_island)
-        .expect("haversine");
+    let distance = haversine_distance(tea_party, georges_island);
     println!("Distance: {} meters", distance.as_float());
 }
