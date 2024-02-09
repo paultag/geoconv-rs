@@ -20,14 +20,14 @@
 
 use crate::{CoordinateSystem, Meters, Radians, ENU, LLE, XYZ};
 
-/// WGS ("World Geodetic System") is a set of standards published and maintained
+/// Wgs ("World Geodetic System") is a set of standards published and maintained
 /// by the United States National Geospatial-Intelligence Agency.
 ///
-/// If you see WGS, you likely actually want WGS84.
+/// If you see Wgs, you likely actually want Wgs84.
 ///
 /// I'm unclear how right this actually is. I have a hunch that it's
 /// not as simple as this, but we'll see.
-pub(crate) trait WGS
+pub(crate) trait Wgs
 where
     Self: Copy,
 {
@@ -41,7 +41,7 @@ impl<T, AngularMeasure> CoordinateSystem<AngularMeasure> for T
 where
     AngularMeasure: From<Radians> + Copy,
     Radians: From<AngularMeasure> + Copy,
-    T: WGS,
+    T: Wgs,
 {
     fn lle_to_xyz(g: &LLE<Self, AngularMeasure>) -> XYZ {
         let lambda: Radians = g.latitude.into();

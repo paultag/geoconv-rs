@@ -18,18 +18,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE. }}}
 
-use crate::wgs::WGS;
+use crate::wgs::Wgs;
 
-/// [WGS84] ("World Geodetic System 1984") is a standard published and maintained
+/// [Wgs84] ("World Geodetic System 1984") is a standard published and maintained
 /// by the United States National Geospatial-Intelligence Agency. This is the
 /// CoordinateSystem used by most systems "by default", including GPS.
 ///
 /// If you have a "Latitude and Longitude" without further information about
-/// the coordinate system, it's not a bad guess to try it out with [WGS84] first.
+/// the coordinate system, it's not a bad guess to try it out with [Wgs84] first.
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct WGS84 {}
+pub struct Wgs84 {}
 
-impl WGS for WGS84 {
+impl Wgs for Wgs84 {
     const A: f64 = 6378137.0;
     const B: f64 = 6356752.314245;
 }
@@ -37,10 +37,10 @@ impl WGS for WGS84 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{CoordinateSystem, Degrees, Meters, AER, ENU, LLE, WGS72, XYZ};
+    use crate::{CoordinateSystem, Degrees, Meters, Wgs72, AER, ENU, LLE, XYZ};
 
-    type WGS84LLE = LLE<WGS84, Degrees>;
-    type WGS72LLE = LLE<WGS72, Degrees>;
+    type Wgs84LLE = LLE<Wgs84, Degrees>;
+    type Wgs72LLE = LLE<Wgs72, Degrees>;
 
     macro_rules! assert_in_eps {
         ($x:expr, $y:expr, $d:expr) => {
@@ -52,12 +52,12 @@ mod tests {
 
     #[test]
     fn lle_to_xyz() {
-        let g = WGS84LLE::new(
+        let g = Wgs84LLE::new(
             Degrees::new(34.00000048),
             Degrees::new(-117.3335693),
             Meters::new(251.702),
         );
-        let refx = WGS84::lle_to_xyz(&g);
+        let refx = Wgs84::lle_to_xyz(&g);
         assert_in_eps!(-2430601.8, refx.x.as_float(), 0.1);
         assert_in_eps!(-4702442.7, refx.y.as_float(), 0.1);
         assert_in_eps!(3546587.4, refx.z.as_float(), 0.1);
@@ -65,22 +65,22 @@ mod tests {
 
     #[test]
     fn around_the_world() {
-        let refr = WGS84LLE::new(
+        let refr = Wgs84LLE::new(
             Degrees::new(38.897957),
             Degrees::new(-77.036560),
             Meters::new(30.0),
         );
 
-        let position = WGS84LLE::new(
+        let position = Wgs84LLE::new(
             Degrees::new(38.8709455),
             Degrees::new(-77.0552551),
             Meters::new(100.0),
         );
 
-        let positionx = WGS84::lle_to_xyz(&position);
-        let positionenu = WGS84::xyz_to_enu(&refr, &positionx);
-        let positionxx1 = WGS84::enu_to_xyz(&refr, &positionenu);
-        let position1: WGS84LLE = WGS84::xyz_to_lle(&positionxx1);
+        let positionx = Wgs84::lle_to_xyz(&position);
+        let positionenu = Wgs84::xyz_to_enu(&refr, &positionx);
+        let positionxx1 = Wgs84::enu_to_xyz(&refr, &positionenu);
+        let position1: Wgs84LLE = Wgs84::xyz_to_lle(&positionxx1);
 
         assert_in_eps!(
             position.latitude.as_float(),
@@ -101,19 +101,19 @@ mod tests {
 
     #[test]
     fn lle_to_enu() {
-        let refr = WGS84LLE::new(
+        let refr = Wgs84LLE::new(
             Degrees::new(34.00000048),
             Degrees::new(-117.3335693),
             Meters::new(251.702),
         );
-        let refx = WGS84::lle_to_xyz(&refr);
+        let refx = Wgs84::lle_to_xyz(&refr);
 
         let point = XYZ {
             x: Meters::new(refx.x.as_float() + 1.0),
             y: refx.y,
             z: refx.z,
         };
-        let pointenu = WGS84::xyz_to_enu(&refr, &point);
+        let pointenu = Wgs84::xyz_to_enu(&refr, &point);
 
         assert_in_eps!(0.88834836, pointenu.east.as_float(), 0.1);
         assert_in_eps!(0.25676467, pointenu.north.as_float(), 0.1);
@@ -124,7 +124,7 @@ mod tests {
             y: Meters::new(refx.y.as_float() + 1.0),
             z: refx.z,
         };
-        let pointenu = WGS84::xyz_to_enu(&refr, &point);
+        let pointenu = Wgs84::xyz_to_enu(&refr, &point);
         assert_in_eps!(-0.45917011, pointenu.east.as_float(), 0.1);
         assert_in_eps!(0.49675810, pointenu.north.as_float(), 0.1);
         assert_in_eps!(-0.73647416, pointenu.up.as_float(), 0.1);
@@ -134,7 +134,7 @@ mod tests {
             y: refx.y,
             z: Meters::new(refx.z.as_float() + 1.0),
         };
-        let pointenu = WGS84::xyz_to_enu(&refr, &point);
+        let pointenu = Wgs84::xyz_to_enu(&refr, &point);
         assert_eq!(0.0, pointenu.east.as_float());
         assert_in_eps!(0.82903757, pointenu.north.as_float(), 0.1);
         assert_in_eps!(0.55919291, pointenu.up.as_float(), 0.1);
@@ -158,26 +158,26 @@ mod tests {
 
     #[test]
     fn aer_enu_round_trip() {
-        let refr = WGS84LLE::new(
+        let refr = Wgs84LLE::new(
             Degrees::new(38.897957),
             Degrees::new(-77.036560),
             Meters::new(30.0),
         );
 
-        let position = WGS84LLE::new(
+        let position = Wgs84LLE::new(
             Degrees::new(38.8709455),
             Degrees::new(-77.0552551),
             Meters::new(30.0),
         );
 
-        let positionx = WGS84::lle_to_xyz(&position);
-        let positionenu = WGS84::xyz_to_enu(&refr, &positionx);
+        let positionx = Wgs84::lle_to_xyz(&position);
+        let positionenu = Wgs84::xyz_to_enu(&refr, &positionx);
 
         let aed: AER<Degrees> = positionenu.into();
         let positionenu1: ENU = aed.into();
 
-        let positionx1 = WGS84::enu_to_xyz(&refr, &positionenu1);
-        let position1: WGS84LLE = WGS84::xyz_to_lle(&positionx1);
+        let positionx1 = Wgs84::enu_to_xyz(&refr, &positionenu1);
+        let position1: Wgs84LLE = Wgs84::xyz_to_lle(&positionx1);
 
         assert_in_eps!(
             position.latitude.as_float(),
@@ -198,9 +198,9 @@ mod tests {
 
     #[test]
     fn round_trip_wgs84_to_wgs72() {
-        let origin = WGS84LLE::new(Degrees::new(10.0), Degrees::new(-20.0), Meters::new(30.0));
-        let translated: WGS72LLE = origin.translate();
-        let round_trip: WGS84LLE = translated.translate();
+        let origin = Wgs84LLE::new(Degrees::new(10.0), Degrees::new(-20.0), Meters::new(30.0));
+        let translated: Wgs72LLE = origin.translate();
+        let round_trip: Wgs84LLE = translated.translate();
 
         assert_in_eps!(
             origin.latitude.as_float(),

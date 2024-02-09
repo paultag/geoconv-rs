@@ -22,7 +22,7 @@
 #![deny(missing_docs)]
 
 //! `geoconv` implements support for converting between some basic coordinate
-//! systems. This package contains support for [WGS84]
+//! systems. This package contains support for [Wgs84]
 //! Latitude/Longitude/Elevation ([LLE]) geodetic coordinates, Earth-centered,
 //! Earth-fixed ([XYZ]), and local tangent plane (both East/North/Up ([ENU])
 //! and Azimuth/Elevation/Range ([AER])) systems.
@@ -48,15 +48,15 @@
 //!
 //! # Supported Coordinate Systems
 //!
-//! I only implemented what I was interested in ([WGS84]), but I threw
-//! in another system ([WGS72]) since it should be pretty straight-forward to
+//! I only implemented what I was interested in ([Wgs84]), but I threw
+//! in another system ([Wgs72]) since it should be pretty straight-forward to
 //! support both. I have no reference data, so some additional testing for
 //! that coordinate system would be most welcome.
 //!
 //! | Coordinate System | State       | Note                     |
 //! | ----------------- | ----------- | ------------------------ |
-//! | [WGS84]           | Tested      | **You likely want this** |
-//! | [WGS72]           | Implemented |                          |
+//! | [Wgs84]           | Tested      | **You likely want this** |
+//! | [Wgs72]           | Implemented |                          |
 //!
 //! # Types
 //!
@@ -78,22 +78,22 @@
 //! and down) and range to the "other" point is from where "we" are.
 //!
 //! ```rust
-//! use geoconv::{LLE, WGS84, Degrees, Meters, AER};
+//! use geoconv::{LLE, Wgs84, Degrees, Meters, AER};
 //!
-//! // Alias for a lat/lon/elevation in the WGS84 coordinate system,
+//! // Alias for a lat/lon/elevation in the Wgs84 coordinate system,
 //! // used by (among many others), GPS -- this is usually what you
 //! // want when you're processing lat/lon information.
-//! type LLEWGS84 = LLE<WGS84>;
+//! type LLEWgs84 = LLE<Wgs84>;
 //!
 //! // "My" point on earth.
-//! let me = LLEWGS84::new(
+//! let me = LLEWgs84::new(
 //!     Degrees::new(42.352211),
 //!     Degrees::new(-71.051315),
 //!     Meters::new(0.0),
 //! );
 //!
 //! // "Your" point on earth.
-//! let you = LLEWGS84::new(
+//! let you = LLEWgs84::new(
 //!     Degrees::new(42.320239),
 //!     Degrees::new(-70.929482),
 //!     Meters::new(100.0),
@@ -112,12 +112,12 @@
 //! given our location.
 //!
 //! ```rust
-//! use geoconv::{LLE, WGS84, Degrees, Meters, AER};
+//! use geoconv::{LLE, Wgs84, Degrees, Meters, AER};
 //!
-//! type LLEWGS84 = LLE<WGS84>;
+//! type LLEWgs84 = LLE<Wgs84>;
 //!
 //! // "My" point on earth.
-//! let me = LLEWGS84::new(
+//! let me = LLEWgs84::new(
 //!     Degrees::new(42.352211),
 //!     Degrees::new(-71.051315),
 //!     Meters::new(0.0),
@@ -133,7 +133,7 @@
 //!
 //! // Assuming I have a perfect reading on where that object is, where
 //! // is that object as a latitude/longitude?
-//! let observed_lle: LLEWGS84 = observation.to_lle(&me);
+//! let observed_lle: LLEWgs84 = observation.to_lle(&me);
 //! ```
 //!
 //! # Haversine (Great Circle) distance between two points
@@ -167,8 +167,8 @@ mod wgs;
 mod wgs72;
 mod wgs84;
 
-pub use wgs72::WGS72;
-pub use wgs84::WGS84;
+pub use wgs72::Wgs72;
+pub use wgs84::Wgs84;
 
 use std::marker::PhantomData;
 
@@ -248,8 +248,8 @@ impl From<Radians> for Degrees {
 ///
 /// The provided `CoordinateSystem` should be the [CoordinateSystem]
 /// that the Latitude, Longitude and Elevation are in refernce to, usually
-/// [WGS84]. If you don't know otherwise, it's a safe to assume that you
-/// want to use `LLE<WGS84>`. If you know otherwise, you may not have
+/// [Wgs84]. If you don't know otherwise, it's a safe to assume that you
+/// want to use `LLE<Wgs84>`. If you know otherwise, you may not have
 /// needed this warning.
 ///
 /// Additionally, the `latitude` and `longitude` fields can be specified in
@@ -322,7 +322,7 @@ where
 /// Earth.
 ///
 /// XYZ locations can be turned into points in reference to Earth's ellipsoid
-/// by using some [CoordinateSystem], such as [WGS84], either directly
+/// by using some [CoordinateSystem], such as [Wgs84], either directly
 /// or via [LLE].
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct XYZ {
@@ -540,8 +540,8 @@ impl From<ENU> for AER<Radians> {
 
         let tau = std::f64::consts::PI * 2.0;
         Self {
-            azimuth: Radians::new(enu.east.as_float().atan2(enu.north.as_float()) % tau).into(),
-            elevation: Radians::new(enu.up.as_float().atan2(r)).into(),
+            azimuth: Radians::new(enu.east.as_float().atan2(enu.north.as_float()) % tau),
+            elevation: Radians::new(enu.up.as_float().atan2(r)),
             range: Meters::new((r * r + enu.up.as_float() * enu.up.as_float()).sqrt()),
         }
     }
@@ -644,7 +644,7 @@ where
 /// as well as globeheads. This means that, in reality, the point on the
 /// sphere's latitude/longitude at elevation `0` may be above or below the
 /// true surface of earth, some [CoordinateSystem] ellipsoid (such as the
-/// very likely case these are [WGS84] coordinates) -- and absolutely won't
+/// very likely case these are [Wgs84] coordinates) -- and absolutely won't
 /// account for changes in the true elevation on Earth's surface.
 ///
 /// But hey, what's [804672](https://www.youtube.com/watch?v=tbNlMtqrYS0)

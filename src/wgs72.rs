@@ -18,29 +18,29 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE. }}}
 
-use crate::wgs::WGS;
+use crate::wgs::Wgs;
 
-/// [WGS72] ("World Geodetic System 1972") is a standard published by the United
+/// [Wgs72] ("World Geodetic System 1972") is a standard published by the United
 /// States National Geospatial-Intelligence Agency.
 ///
 /// This CoordinateSystem isn't used very much any more (if at all), but is
 /// implemented to assist with the conversion of old geospatial data
-/// to the WGS84 system, what you actually want.
+/// to the Wgs84 system, what you actually want.
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct WGS72 {}
+pub struct Wgs72 {}
 
-impl WGS for WGS72 {
+impl Wgs for Wgs72 {
     const A: f64 = 6378135.0;
     const B: f64 = 6356750.52;
 }
 
 #[cfg(test)]
 mod tests {
-    use super::WGS72;
-    use crate::{Degrees, Meters, LLE, WGS84};
+    use super::Wgs72;
+    use crate::{Degrees, Meters, Wgs84, LLE};
 
-    type WGS72LLE = LLE<WGS72, Degrees>;
-    type WGS84LLE = LLE<WGS84, Degrees>;
+    type Wgs72LLE = LLE<Wgs72, Degrees>;
+    type Wgs84LLE = LLE<Wgs84, Degrees>;
 
     macro_rules! assert_in_eps {
         ($x:expr, $y:expr, $d:expr) => {
@@ -52,9 +52,9 @@ mod tests {
 
     #[test]
     fn round_trip_wgs72_to_wgs84() {
-        let origin = WGS72LLE::new(Degrees::new(10.0), Degrees::new(-20.0), Meters::new(30.0));
-        let translated: WGS84LLE = origin.translate();
-        let round_trip: WGS72LLE = translated.translate();
+        let origin = Wgs72LLE::new(Degrees::new(10.0), Degrees::new(-20.0), Meters::new(30.0));
+        let translated: Wgs84LLE = origin.translate();
+        let round_trip: Wgs72LLE = translated.translate();
 
         assert_in_eps!(
             origin.latitude.as_float(),
