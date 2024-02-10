@@ -83,17 +83,17 @@
 //! // Alias for a lat/lon/elevation in the Wgs84 coordinate system,
 //! // used by (among many others), GPS -- this is usually what you
 //! // want when you're processing lat/lon information.
-//! type LLEWgs84 = LLE<Wgs84>;
+//! type LLEW84 = LLE<Wgs84>;
 //!
 //! // "My" point on earth.
-//! let me = LLEWgs84::new(
+//! let me = LLEW84::new(
 //!     Degrees::new(42.352211),
 //!     Degrees::new(-71.051315),
 //!     Meters::new(0.0),
 //! );
 //!
 //! // "Your" point on earth.
-//! let you = LLEWgs84::new(
+//! let you = LLEW84::new(
 //!     Degrees::new(42.320239),
 //!     Degrees::new(-70.929482),
 //!     Meters::new(100.0),
@@ -114,10 +114,10 @@
 //! ```rust
 //! use geoconv::{LLE, Wgs84, Degrees, Meters, AER};
 //!
-//! type LLEWgs84 = LLE<Wgs84>;
+//! type LLEW84 = LLE<Wgs84>;
 //!
 //! // "My" point on earth.
-//! let me = LLEWgs84::new(
+//! let me = LLEW84::new(
 //!     Degrees::new(42.352211),
 //!     Degrees::new(-71.051315),
 //!     Meters::new(0.0),
@@ -133,7 +133,7 @@
 //!
 //! // Assuming I have a perfect reading on where that object is, where
 //! // is that object as a latitude/longitude?
-//! let observed_lle: LLEWgs84 = observation.to_lle(&me);
+//! let observed_lle: LLEW84 = observation.to_lle(&me);
 //! ```
 //!
 //! # Haversine (Great Circle) distance between two points
@@ -634,6 +634,33 @@ where
     }
 }
 
+/// For both [haversine_distance] and [bearing] we need to know these values
+/// in this format, and writing this every time is a bit tedious.
+fn angular_measure_to_radian_delta<AngularMeasure>(
+    self_lat_lon: (AngularMeasure, AngularMeasure),
+    other_lat_lon: (AngularMeasure, AngularMeasure),
+) -> ((f64, f64), (f64, f64), (f64, f64))
+where
+    Radians: From<AngularMeasure> + Copy,
+{
+    let (self_lat, self_lon) = self_lat_lon;
+    let (self_lat, self_lon): (Radians, Radians) = (self_lat.into(), self_lon.into());
+    let (self_lat, self_lon) = (self_lat.as_float(), self_lon.as_float());
+
+    let (other_lat, other_lon) = other_lat_lon;
+    let (other_lat, other_lon): (Radians, Radians) = (other_lat.into(), other_lon.into());
+    let (other_lat, other_lon) = (other_lat.as_float(), other_lon.as_float());
+
+    let delta_lat = self_lat - other_lat;
+    let delta_lon = self_lon - other_lon;
+
+    (
+        (delta_lat, delta_lon),
+        (self_lat, self_lon),
+        (other_lat, other_lon),
+    )
+}
+
 /// Haversine (Great Circle) distance between two points returns the
 /// distance between to Latitude/Longitude points along the great circle
 /// path along Earth's "surface", in either [Degrees] or [Radians].
@@ -658,22 +685,42 @@ where
 {
     const EARTH_RADIUS: Meters = Meters(6371000.0);
 
-    let (self_lat, self_lon) = self_lat_lon;
-    let (self_lat, self_lon): (Radians, Radians) = (self_lat.into(), self_lon.into());
-    let (self_lat, self_lon) = (self_lat.as_float(), self_lon.as_float());
-
-    let (other_lat, other_lon) = other_lat_lon;
-    let (other_lat, other_lon): (Radians, Radians) = (other_lat.into(), other_lon.into());
-    let (other_lat, other_lon) = (other_lat.as_float(), other_lon.as_float());
-
-    let delta_lat = self_lat - other_lat;
-    let delta_lon = self_lon - other_lon;
+    let (
+        (delta_lat, delta_lon),
+        // f64 of the measure in radians.
+        (self_lat, _self_lon),
+        (other_lat, _other_lon),
+    ) = angular_measure_to_radian_delta(self_lat_lon, other_lat_lon);
 
     let a = (delta_lat / 2.0).sin().powf(2.0)
         + self_lat.cos() * other_lat.cos() * (delta_lon / 2.0).sin().powf(2.0);
     let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
 
     Meters::new(EARTH_RADIUS.as_float() * c)
+}
+
+/// Compute the bearing (compass heading) from one point to another, provided
+/// in Latitude/Longitude points along Earth's "surface" in either [Degrees]
+/// or [Radians].
+pub fn bearing<AngularMeasure>(
+    self_lat_lon: (AngularMeasure, AngularMeasure),
+    other_lat_lon: (AngularMeasure, AngularMeasure),
+) -> AngularMeasure
+where
+    Radians: From<AngularMeasure> + Copy,
+    AngularMeasure: From<Radians> + Copy,
+{
+    let (
+        (_delta_lat, delta_lon),
+        // f64 of the measure in radians.
+        (self_lat, _self_lon),
+        (other_lat, _other_lon),
+    ) = angular_measure_to_radian_delta(self_lat_lon, other_lat_lon);
+
+    let x = self_lat.cos() * other_lat.sin() - self_lat.sin() * other_lat.cos() * delta_lon.cos();
+    let y = delta_lon.sin() * other_lat.cos();
+
+    Radians::new(y.atan2(x) + std::f64::consts::PI).into()
 }
 
 #[cfg(test)]
@@ -695,7 +742,7 @@ mod tests {
     macro_rules! assert_in_eps {
         ($x:expr, $y:expr, $d:expr) => {
             if !($x - $y < $d && $y - $x < $d) {
-                panic!();
+                panic!("{} is not ~= to {}", $x, $y);
             }
         };
     }
@@ -713,6 +760,23 @@ mod tests {
             (Degrees::new(38.889931), Degrees::new(-77.009003)),
         );
         assert_in_eps!(5897658.288856054, result.as_float(), 1e-6);
+    }
+
+    #[test]
+    fn bearing_known() {
+        // somewhere in south america's bearing to null island (strictly
+        // due east).
+        let result = bearing(
+            (Degrees::new(0.0), Degrees::new(-88.0)),
+            (Degrees::new(0.0), Degrees::new(0.0)),
+        );
+        assert_in_eps!(90.0, result.as_float(), 1e-6);
+
+        let result = bearing(
+            (Degrees::new(0.0), Degrees::new(0.0)),
+            (Degrees::new(0.0), Degrees::new(-88.0)),
+        );
+        assert_in_eps!(270.0, result.as_float(), 1e-6);
     }
 }
 
