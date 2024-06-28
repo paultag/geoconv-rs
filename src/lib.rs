@@ -179,14 +179,14 @@ pub struct Meters(f64);
 impl Meters {
     /// Create a new Meters struct, initialized with the provided
     /// distance, in meters.
-    pub fn new(meters: f64) -> Meters {
+    pub const fn new(meters: f64) -> Meters {
         Meters(meters)
     }
 
     /// Return the number of meters as a floating point number.
     /// This number may be less than 0 (for distances less than a meter), or
     /// very large (for kilometers, etc).
-    pub fn as_float(self) -> f64 {
+    pub const fn as_float(self) -> f64 {
         self.0
     }
 }
@@ -198,12 +198,12 @@ pub struct Degrees(f64);
 impl Degrees {
     /// Create a new [Degrees] struct, initialized with the provided
     /// number of degrees, either between 0 and 360 or -180 to +180.
-    pub fn new(degrees: f64) -> Degrees {
+    pub const fn new(degrees: f64) -> Degrees {
         Degrees(degrees)
     }
 
     /// Return the [Degrees] as a floating point number.
-    pub fn as_float(self) -> f64 {
+    pub const fn as_float(self) -> f64 {
         self.0
     }
 }
@@ -221,14 +221,14 @@ pub struct Radians(f64);
 impl Radians {
     /// Create a new [Radians] struct, initialized with the provided
     /// number of radians, ranging between 0 and to 2π (𝜏).
-    pub fn new(radians: f64) -> Radians {
+    pub const fn new(radians: f64) -> Radians {
         // TODO(paultag): put this into the range 0 -> 𝜏
         Radians(radians)
     }
 
     /// Return the [Radians] as a floating point number from 0
     /// to 2π (𝜏).
-    pub fn as_float(self) -> f64 {
+    pub const fn as_float(self) -> f64 {
         self.0
     }
 }
@@ -282,7 +282,7 @@ where
     CoordinateSystem: crate::CoordinateSystem<AngularMeasure>,
 {
     /// Create a new LLE (latitude, longitude, elevation) from parts.
-    pub fn new(
+    pub const fn new(
         latitude: AngularMeasure,
         longitude: AngularMeasure,
         elevation: Meters,
