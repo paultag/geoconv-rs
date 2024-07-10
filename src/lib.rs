@@ -163,6 +163,7 @@
 //! let result: Meters = haversine_distance(lat_lon_a, lat_lob_b);
 //! ```
 
+pub mod maidenhead;
 mod wgs;
 mod wgs72;
 mod wgs84;
