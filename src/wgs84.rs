@@ -37,7 +37,7 @@ impl Wgs for Wgs84 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{CoordinateSystem, Degrees, Meters, Wgs72, AER, ENU, LLE, XYZ};
+    use crate::{AER, CoordinateSystem, Degrees, ENU, LLE, Meters, Wgs72, XYZ};
 
     type Wgs84LLE = LLE<Wgs84, Degrees>;
     type Wgs72LLE = LLE<Wgs72, Degrees>;

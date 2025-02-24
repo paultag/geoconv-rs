@@ -1,4 +1,4 @@
-use geoconv::{Degrees, Meters, Radians, Wgs72, Wgs84, AER, LLE};
+use geoconv::{AER, Degrees, LLE, Meters, Radians, Wgs72, Wgs84};
 
 fn main() {
     let tea_party = LLE::<Wgs84>::new(

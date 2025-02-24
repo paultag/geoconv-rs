@@ -1,7 +1,7 @@
 [package]
 name = "geoconv"
 version = "0.4.3"
-edition = "2021"
+edition = "2024"
 license = "MIT"
 authors = ["Paul Tagliamonte <paultag@gmail.com>"]
 repository = "https://github.com/paultag/geoconv-rs"

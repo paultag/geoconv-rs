@@ -1,4 +1,4 @@
-use geoconv::{haversine_distance, Degrees};
+use geoconv::{Degrees, haversine_distance};
 
 fn main() {
     let tea_party = (Degrees::new(42.352211), Degrees::new(-71.051315));

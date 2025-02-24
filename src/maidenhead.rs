@@ -22,7 +22,7 @@
 //! used by amateur radio operators. These are usually either 4 or 6 bytes
 //! long, with increasing precision as the number of bytes increases.
 
-use super::{Degrees, Meters, Wgs84, LLE};
+use super::{Degrees, LLE, Meters, Wgs84};
 use std::ops::Range;
 
 /// A Maidenhead Grid Locator is the actual location somewhere on earth. They
@@ -95,13 +95,14 @@ impl Grid<6> {
     fn raw_top_left_lat_lon(&self) -> Result<LLE<Wgs84>, Error> {
         let [
             // First is lon/lat; "F" and "M" (A-Z).
-            lon, lat,
-
+            lon,
+            lat,
             // Next is our square - "1" and "8" (0-9)
-            square_lon, square_lat,
-
+            square_lon,
+            square_lat,
             // Finally, our subsquare, "l" and "v" (a-z)
-            subsquare_lon, subsquare_lat,
+            subsquare_lon,
+            subsquare_lat,
         ] = self.0;
 
         fn ascii_to_int(range: Range<u8>, v: u8) -> Result<u8, Error> {
