@@ -22,7 +22,7 @@
 //! used by amateur radio operators. These are usually either 4 or 6 bytes
 //! long, with increasing precision as the number of bytes increases.
 
-use super::{Degrees, LLE, Meters, Wgs84};
+use super::{Degrees, Meters, Wgs84, LLE};
 use std::ops::Range;
 
 /// A Maidenhead Grid Locator is the actual location somewhere on earth. They
@@ -34,7 +34,7 @@ use std::ops::Range;
 pub struct Grid<const N: usize>([u8; N]);
 
 /// Possible errors that can be returned when parsing a Maidenhead Grid Locator.
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum Error {
     /// One of the ASCII values is invalid according to the how the scheme
     /// encodes Latitude or Longitude Degrees.

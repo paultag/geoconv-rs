@@ -20,6 +20,13 @@
 
 #![forbid(unsafe_code)]
 #![deny(missing_docs)]
+#![deny(missing_copy_implementations)]
+#![deny(trivial_casts)]
+#![deny(trivial_numeric_casts)]
+#![deny(unused_import_braces)]
+#![deny(unused_qualifications)]
+#![deny(rustdoc::broken_intra_doc_links)]
+#![deny(rustdoc::private_intra_doc_links)]
 
 //! `geoconv` implements support for converting between some basic coordinate
 //! systems. This package contains support for [Wgs84]
