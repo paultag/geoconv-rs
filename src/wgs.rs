@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE. }}}
 
-use crate::{CoordinateSystem, ENU, LLE, Meters, Radians, XYZ};
+use crate::{CoordinateSystem, Enu, Lle, Meters, Radians, Xyz};
 
 /// Wgs ("World Geodetic System") is a set of standards published and maintained
 /// by the United States National Geospatial-Intelligence Agency.
@@ -43,7 +43,7 @@ where
     Radians: From<AngularMeasure> + Copy,
     T: Wgs,
 {
-    fn lle_to_xyz(g: &LLE<Self, AngularMeasure>) -> XYZ {
+    fn lle_to_xyz(g: &Lle<Self, AngularMeasure>) -> Xyz {
         let lambda: Radians = g.latitude.into();
         let phi: Radians = g.longitude.into();
         let lambda = lambda.as_float();
@@ -55,14 +55,14 @@ where
         let cos_phi = phi.cos();
         let n = Self::A / (1.0 - Self::E_SQ * sin_lambda * sin_lambda).sqrt();
 
-        XYZ {
+        Xyz {
             x: Meters::new((g.elevation.as_float() + n) * cos_lambda * cos_phi),
             y: Meters::new((g.elevation.as_float() + n) * cos_lambda * sin_phi),
             z: Meters::new((g.elevation.as_float() + (1.0 - Self::E_SQ) * n) * sin_lambda),
         }
     }
 
-    fn xyz_to_lle(x: &XYZ) -> LLE<Self, AngularMeasure> {
+    fn xyz_to_lle(x: &Xyz) -> Lle<Self, AngularMeasure> {
         let eps = Self::E_SQ / (1.0 - Self::E_SQ);
         let p = (x.x.as_float() * x.x.as_float() + x.y.as_float() * x.y.as_float()).sqrt();
         let q = (x.z.as_float() * Self::A).atan2(p * Self::B);
@@ -79,10 +79,10 @@ where
         let v = Self::A / (1.0 - Self::E_SQ * phi.sin() * phi.sin()).sqrt();
         let h = Meters::new((p / phi.cos()) - v);
 
-        LLE::<Self, AngularMeasure>::new(Radians::new(phi).into(), Radians::new(lambda).into(), h)
+        Lle::<Self, AngularMeasure>::new(Radians::new(phi).into(), Radians::new(lambda).into(), h)
     }
 
-    fn xyz_to_enu(g: &LLE<Self, AngularMeasure>, x: &XYZ) -> ENU {
+    fn xyz_to_enu(g: &Lle<Self, AngularMeasure>, x: &Xyz) -> Enu {
         let lambda: Radians = g.latitude.into();
         let phi: Radians = g.longitude.into();
         let lambda = lambda.as_float();
@@ -98,7 +98,7 @@ where
         let yd = x.y.as_float() - xref.y.as_float();
         let zd = x.z.as_float() - xref.z.as_float();
 
-        ENU {
+        Enu {
             east: Meters::new(-sin_phi * xd + cos_phi * yd),
             north: Meters::new(
                 -cos_phi * sin_lambda * xd - sin_lambda * sin_phi * yd + cos_lambda * zd,
@@ -109,7 +109,7 @@ where
         }
     }
 
-    fn enu_to_xyz(g: &LLE<Self, AngularMeasure>, lt: &ENU) -> XYZ {
+    fn enu_to_xyz(g: &Lle<Self, AngularMeasure>, lt: &Enu) -> Xyz {
         let lambda: Radians = g.latitude.into();
         let phi: Radians = g.longitude.into();
         let lambda = lambda.as_float();
@@ -137,7 +137,7 @@ where
         let y = yd + y0;
         let z = zd + z0;
 
-        XYZ {
+        Xyz {
             x: Meters::new(x),
             y: Meters::new(y),
             z: Meters::new(z),

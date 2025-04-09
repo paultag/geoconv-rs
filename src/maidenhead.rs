@@ -22,7 +22,7 @@
 //! used by amateur radio operators. These are usually either 4 or 6 bytes
 //! long, with increasing precision as the number of bytes increases.
 
-use super::{Degrees, LLE, Meters, Wgs84};
+use super::{Degrees, Lle, Meters, Wgs84};
 use std::ops::Range;
 
 /// A Maidenhead Grid Locator is the actual location somewhere on earth. They
@@ -63,9 +63,9 @@ impl std::str::FromStr for Grid<6> {
 impl Grid<6> {
     /// Compute the center of the Maidenhead grid square. All points will
     /// be at 0 meters (on the ellipsoid).
-    pub fn center_lat_lon(&self) -> Result<LLE<Wgs84>, Error> {
+    pub fn center_lat_lon(&self) -> Result<Lle<Wgs84>, Error> {
         let top_left = self.raw_top_left_lat_lon()?;
-        Ok(LLE::new(
+        Ok(Lle::new(
             Degrees::new(top_left.latitude.as_float() + (1.0 / 48.0) - 90.0),
             Degrees::new(top_left.longitude.as_float() + (1.0 / 24.0) - 180.0),
             Meters::new(0.0),
@@ -74,7 +74,7 @@ impl Grid<6> {
 
     /// Compute the "top left" and "bottom right" of the Maidenhead grid square.
     /// All points will be at 0 meters (on the ellipsoid).
-    pub fn corners_lat_lon(&self) -> Result<[LLE<Wgs84>; 2], Error> {
+    pub fn corners_lat_lon(&self) -> Result<[Lle<Wgs84>; 2], Error> {
         let top_left = self.raw_top_left_lat_lon()?;
 
         let next_lat = top_left.latitude.as_float() + (1.0 / 24.0) - 90.0;
@@ -83,8 +83,8 @@ impl Grid<6> {
         let lon = top_left.longitude.as_float() - 180.0;
 
         Ok([
-            LLE::new(Degrees::new(lat), Degrees::new(lon), Meters::new(0.0)),
-            LLE::new(
+            Lle::new(Degrees::new(lat), Degrees::new(lon), Meters::new(0.0)),
+            Lle::new(
                 Degrees::new(next_lat),
                 Degrees::new(next_lon),
                 Meters::new(0.0),
@@ -92,7 +92,7 @@ impl Grid<6> {
         ])
     }
 
-    fn raw_top_left_lat_lon(&self) -> Result<LLE<Wgs84>, Error> {
+    fn raw_top_left_lat_lon(&self) -> Result<Lle<Wgs84>, Error> {
         let [
             // First is lon/lat; "F" and "M" (A-Z).
             lon,
@@ -124,7 +124,7 @@ impl Grid<6> {
         // the 1/48 and 1/24 here will put it in the center of the grid.
         // need to implement bounding box style
 
-        Ok(LLE::new(
+        Ok(Lle::new(
             Degrees::new((lat * 10.0) + (square_lat) + (subsquare_lat / 24.0)),
             Degrees::new((lon * 20.0) + (square_lon * 2.0) + (subsquare_lon / 12.0)),
             Meters::new(0.0),

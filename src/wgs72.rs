@@ -37,10 +37,10 @@ impl Wgs for Wgs72 {
 #[cfg(test)]
 mod tests {
     use super::Wgs72;
-    use crate::{Degrees, LLE, Meters, Wgs84};
+    use crate::{Degrees, Lle, Meters, Wgs84};
 
-    type Wgs72LLE = LLE<Wgs72, Degrees>;
-    type Wgs84LLE = LLE<Wgs84, Degrees>;
+    type Wgs72Lle = Lle<Wgs72, Degrees>;
+    type Wgs84Lle = Lle<Wgs84, Degrees>;
 
     macro_rules! assert_in_eps {
         ($x:expr, $y:expr, $d:expr) => {
@@ -52,9 +52,9 @@ mod tests {
 
     #[test]
     fn round_trip_wgs72_to_wgs84() {
-        let origin = Wgs72LLE::new(Degrees::new(10.0), Degrees::new(-20.0), Meters::new(30.0));
-        let translated: Wgs84LLE = origin.translate();
-        let round_trip: Wgs72LLE = translated.translate();
+        let origin = Wgs72Lle::new(Degrees::new(10.0), Degrees::new(-20.0), Meters::new(30.0));
+        let translated: Wgs84Lle = origin.translate();
+        let round_trip: Wgs72Lle = translated.translate();
 
         assert_in_eps!(
             origin.latitude.as_float(),

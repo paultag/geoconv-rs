@@ -30,9 +30,9 @@
 
 //! `geoconv` implements support for converting between some basic coordinate
 //! systems. This package contains support for [Wgs84]
-//! Latitude/Longitude/Elevation ([LLE]) geodetic coordinates, Earth-centered,
-//! Earth-fixed ([XYZ]), and local tangent plane (both East/North/Up ([ENU])
-//! and Azimuth/Elevation/Range ([AER])) systems.
+//! Latitude/Longitude/Elevation ([Lle]) geodetic coordinates, Earth-centered,
+//! Earth-fixed ([Xyz]), and local tangent plane (both East/North/Up ([Enu])
+//! and Azimuth/Elevation/Range ([Aer])) systems.
 //!
 //! <div class="warning">
 //! <b>This is also absolutely not ready to be used for navigational purposes</b>.
@@ -72,59 +72,59 @@
 //!
 //! | Name  | Cartesian or Angular | Where is `0`, `0`, `0`?               | Description                                                  |
 //! | ----- | -------------------- | ------------------------------------- | ------------------------------------------------------------ |
-//! | [LLE] | Angular              | Null Island                           | Latitude, Longitude, and Elevation                           |
-//! | [XYZ] | Cartesian            | Earth's Core                          | X, Y, Z (sometimes called ECEF, Earth-centered, Earth-fixed) |
-//! | [AER] | Angular              | Some point on the local tangent plane | Azimuth, Elevation and Range                                 |
-//! | [ENU] | Cartesian            | Some point on the local tangent plane | East-North-Up                                                |
+//! | [Lle] | Angular              | Null Island                           | Latitude, Longitude, and Elevation                           |
+//! | [Xyz] | Cartesian            | Earth's Core                          | X, Y, Z (sometimes called ECEF, Earth-centered, Earth-fixed) |
+//! | [Aer] | Angular              | Some point on the local tangent plane | Azimuth, Elevation and Range                                 |
+//! | [Enu] | Cartesian            | Some point on the local tangent plane | East-North-Up                                                |
 //!
 //! # Determining the Azimuth, Elevation and Rage between two points
 //!
-//! Using `geoconv`, we can take some Latitude, Longitude and Elevation ([LLE])
-//! and figure out where another [LLE] point is in reference to our local
+//! Using `geoconv`, we can take some Latitude, Longitude and Elevation ([Lle])
+//! and figure out where another [Lle] point is in reference to our local
 //! tangent plane -- for instance, what the bearing (azimuth), elevation (up
 //! and down) and range to the "other" point is from where "we" are.
 //!
 //! ```rust
-//! use geoconv::{LLE, Wgs84, Degrees, Meters, AER};
+//! use geoconv::{Lle, Wgs84, Degrees, Meters, Aer};
 //!
 //! // Alias for a lat/lon/elevation in the Wgs84 coordinate system,
 //! // used by (among many others), GPS -- this is usually what you
 //! // want when you're processing lat/lon information.
-//! type LLEW84 = LLE<Wgs84>;
+//! type LleW84 = Lle<Wgs84>;
 //!
 //! // "My" point on earth.
-//! let me = LLEW84::new(
+//! let me = LleW84::new(
 //!     Degrees::new(42.352211),
 //!     Degrees::new(-71.051315),
 //!     Meters::new(0.0),
 //! );
 //!
 //! // "Your" point on earth.
-//! let you = LLEW84::new(
+//! let you = LleW84::new(
 //!     Degrees::new(42.320239),
 //!     Degrees::new(-70.929482),
 //!     Meters::new(100.0),
 //! );
 //!
 //! // Compute in what direction I'd need to look to see you.
-//! let look: AER<Degrees> = me.aer_to(&you);
+//! let look: Aer<Degrees> = me.aer_to(&you);
 //! ```
 //!
 //! # Determine the coordinates of something you can range
 //!
 //! Using `geoconv`, we can take some observation taken from a point,
 //! and figure out where that point is. Let's work through
-//! taking a reading in Azimuth, Elevation and Range ([AER]) and
-//! turning that back into Latitude, Longitude and Elevation ([LLE])
+//! taking a reading in Azimuth, Elevation and Range ([Aer]) and
+//! turning that back into Latitude, Longitude and Elevation ([Lle])
 //! given our location.
 //!
 //! ```rust
-//! use geoconv::{LLE, Wgs84, Degrees, Meters, AER};
+//! use geoconv::{Lle, Wgs84, Degrees, Meters, Aer};
 //!
-//! type LLEW84 = LLE<Wgs84>;
+//! type LleW84 = Lle<Wgs84>;
 //!
 //! // "My" point on earth.
-//! let me = LLEW84::new(
+//! let me = LleW84::new(
 //!     Degrees::new(42.352211),
 //!     Degrees::new(-71.051315),
 //!     Meters::new(0.0),
@@ -132,7 +132,7 @@
 //!
 //! // I see something straight ahead of me, 45 degrees in elevation (up),
 //! // and 30 meters away.
-//! let observation = AER {
+//! let observation = Aer {
 //!     azimuth: Degrees::new(0.0),
 //!     elevation: Degrees::new(45.0),
 //!     range: Meters::new(30.0),
@@ -140,7 +140,7 @@
 //!
 //! // Assuming I have a perfect reading on where that object is, where
 //! // is that object as a latitude/longitude?
-//! let observed_lle: LLEW84 = observation.to_lle(&me);
+//! let observed_lle: LleW84 = observation.to_lle(&me);
 //! ```
 //!
 //! # Haversine (Great Circle) distance between two points
@@ -157,7 +157,7 @@
 //! points, we can use the Haversine formula to approximate the distance.
 //!
 //! Haversine distance **does not** easily take into account elevation,
-//! so the [haversine_distance] function does not accept a [LLE], rather,
+//! so the [haversine_distance] function does not accept a [Lle], rather,
 //! a tuple of AngularMeasures, such as [Degrees] or [Radians].
 //!
 //! ```rust
@@ -247,7 +247,7 @@ impl From<Radians> for Degrees {
     }
 }
 
-/// [LLE] or Latitude, Longitude, Elevation, is a location somewhere around
+/// [Lle] or Latitude, Longitude, Elevation, is a location somewhere around
 /// Earth, in refernce to some [CoordinateSystem]'s ellipsoid.
 ///
 /// Relatedly, this means that the `elevation` is the number of [Meters]
@@ -257,14 +257,14 @@ impl From<Radians> for Degrees {
 /// The provided `CoordinateSystem` should be the [CoordinateSystem]
 /// that the Latitude, Longitude and Elevation are in refernce to, usually
 /// [Wgs84]. If you don't know otherwise, it's a safe to assume that you
-/// want to use `LLE<Wgs84>`. If you know otherwise, you may not have
+/// want to use `Lle<Wgs84>`. If you know otherwise, you may not have
 /// needed this warning.
 ///
 /// Additionally, the `latitude` and `longitude` fields can be specified in
 /// either [Degrees] or [Radians]. Unless you know otherwise, you likely
 /// want to work with [Degrees], and is the default if nothing is specified.
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct LLE<CoordinateSystem, AngularMeasure = Degrees>
+pub struct Lle<CoordinateSystem, AngularMeasure = Degrees>
 where
     Radians: From<AngularMeasure> + Copy,
     AngularMeasure: From<Radians> + Copy,
@@ -283,19 +283,19 @@ where
     pub elevation: Meters,
 }
 
-impl<CoordinateSystem, AngularMeasure> LLE<CoordinateSystem, AngularMeasure>
+impl<CoordinateSystem, AngularMeasure> Lle<CoordinateSystem, AngularMeasure>
 where
     Radians: From<AngularMeasure> + Copy,
     AngularMeasure: From<Radians> + Copy,
     CoordinateSystem: crate::CoordinateSystem<AngularMeasure>,
 {
-    /// Create a new LLE (latitude, longitude, elevation) from parts.
+    /// Create a new Lle (latitude, longitude, elevation) from parts.
     pub const fn new(
         latitude: AngularMeasure,
         longitude: AngularMeasure,
         elevation: Meters,
-    ) -> LLE<CoordinateSystem, AngularMeasure> {
-        LLE {
+    ) -> Lle<CoordinateSystem, AngularMeasure> {
+        Lle {
             latitude,
             longitude,
             elevation,
@@ -305,35 +305,35 @@ where
 
     /// Compute the East-North-Up of some provided point (`other`) given
     /// some refernce location `self`.
-    pub fn enu_to(&self, other: &LLE<CoordinateSystem, AngularMeasure>) -> ENU {
+    pub fn enu_to(&self, other: &Lle<CoordinateSystem, AngularMeasure>) -> Enu {
         CoordinateSystem::lle_to_enu(self, other)
     }
 
     /// Compute the Az-El-Range of some provided point (`other`) given
     /// some reference location `self`.
-    pub fn aer_to<AERAngularMeasure>(
+    pub fn aer_to<AerAngularMeasure>(
         &self,
-        other: &LLE<CoordinateSystem, AngularMeasure>,
-    ) -> AER<AERAngularMeasure>
+        other: &Lle<CoordinateSystem, AngularMeasure>,
+    ) -> Aer<AerAngularMeasure>
     where
-        AER<AERAngularMeasure>: From<ENU>,
+        Aer<AerAngularMeasure>: From<Enu>,
     {
         self.enu_to(other).into()
     }
 }
 
-/// [XYZ] is the earth-centric XYZ point system.
+/// [Xyz] is the earth-centric Xyz point system.
 ///
 /// `{ x: 0.0, y: 0.0, z: 0.0 }` is the center of the CoordinateSystem (which
 /// is to say, inside Earth's Core). X/Y/Z coordinates are cartesian, and
 /// as they grow larger in absolute value, will get further from the center of
 /// Earth.
 ///
-/// XYZ locations can be turned into points in reference to Earth's ellipsoid
+/// Xyz locations can be turned into points in reference to Earth's ellipsoid
 /// by using some [CoordinateSystem], such as [Wgs84], either directly
-/// or via [LLE].
+/// or via [Lle].
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct XYZ {
+pub struct Xyz {
     /// Distance from the center of the ECEF coordinate system. The X axis
     /// intersects the equator along the semi-major axis.
     pub x: Meters,
@@ -347,52 +347,57 @@ pub struct XYZ {
     pub z: Meters,
 }
 
-// Implemnt conversions to/from LLE and XYZ coordinates.
+/// Alias for [XYZ]. This struct was renamed to better match Rust style,
+/// and this alias will be removed in a future release.
+#[deprecated]
+pub type XYZ = Xyz;
 
-impl<CoordinateSystem, AngularMeasure> From<LLE<CoordinateSystem, AngularMeasure>> for XYZ
+// Implemnt conversions to/from Lle and Xyz coordinates.
+
+impl<CoordinateSystem, AngularMeasure> From<Lle<CoordinateSystem, AngularMeasure>> for Xyz
 where
     Radians: From<AngularMeasure> + Copy,
     AngularMeasure: From<Radians> + Copy,
     CoordinateSystem: crate::CoordinateSystem<AngularMeasure>,
 {
-    /// Convert some [LLE] into an [XYZ] coordinate using [LLE]'s
+    /// Convert some [Lle] into an [Xyz] coordinate using [Lle]'s
     /// [CoordinateSystem].
-    fn from(lle: LLE<CoordinateSystem, AngularMeasure>) -> Self {
+    fn from(lle: Lle<CoordinateSystem, AngularMeasure>) -> Self {
         CoordinateSystem::lle_to_xyz(&lle)
     }
 }
 
-impl<CoordinateSystem, AngularMeasure> From<XYZ> for LLE<CoordinateSystem, AngularMeasure>
+impl<CoordinateSystem, AngularMeasure> From<Xyz> for Lle<CoordinateSystem, AngularMeasure>
 where
     Radians: From<AngularMeasure> + Copy,
     AngularMeasure: From<Radians> + Copy,
     CoordinateSystem: crate::CoordinateSystem<AngularMeasure>,
 {
-    /// Convert some [XYZ] into an [LLE] coordinate using [LLE]'s
+    /// Convert some [Xyz] into an [Lle] coordinate using [Lle]'s
     /// [CoordinateSystem].
-    fn from(xyz: XYZ) -> Self {
+    fn from(xyz: Xyz) -> Self {
         CoordinateSystem::xyz_to_lle(&xyz)
     }
 }
 
-/// [AER] represents an Azimuth, Elevation, and Range measurement.
+/// [Aer] represents an Azimuth, Elevation, and Range measurement.
 ///
 /// Azimuth/Elevation (or Az/El) is a common way of locating objects measured
 /// at a specific location on Earth in the local tangent plane
 /// (for instance, from a RADAR). That reference location is not included in
-/// the [AER] struct, so re-contextualizing this requires knowing the point
+/// the [Aer] struct, so re-contextualizing this requires knowing the point
 /// at which the observation was taken from or was in reference to.
 ///
-/// An [AER] can be passed an "`AngularMeasure`" generic argument, which means,
+/// An [Aer] can be passed an "`AngularMeasure`" generic argument, which means,
 /// for all practical purposes, either [Degrees] or [Radians]. The default is
-/// [Degrees], but can be overriden by passing [Radians] into the [AER].
+/// [Degrees], but can be overriden by passing [Radians] into the [Aer].
 /// [Degrees] tend to be a lot easier to use as an API and for humans, but
 /// when passing data between third party code and this library, you may find
 /// it's less work to skip conversions through [Degrees] when reading or
-/// writing [AER] data. If you don't have some overriding conviction, using
+/// writing [Aer] data. If you don't have some overriding conviction, using
 /// [Degrees] is a good idea.
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct AER<AngularMeasure = Degrees> {
+pub struct Aer<AngularMeasure = Degrees> {
     /// Angle in azimuth (left and right) in relation to some fixed point and
     /// orientation.
     pub azimuth: AngularMeasure,
@@ -406,24 +411,29 @@ pub struct AER<AngularMeasure = Degrees> {
     pub range: Meters,
 }
 
-impl<AngularMeasure> AER<AngularMeasure>
+/// Alias for [AER]. This struct was renamed to better match Rust style,
+/// and this alias will be removed in a future release.
+#[deprecated]
+pub type AER = Aer;
+
+impl<AngularMeasure> Aer<AngularMeasure>
 where
-    ENU: From<AER<AngularMeasure>>,
+    Enu: From<Aer<AngularMeasure>>,
     Self: Copy,
 {
     /// Take some observation (`self`), and contextualize it into some
-    /// absolute [LLE] given some reference point `obs` that this [AER] is
+    /// absolute [Lle] given some reference point `obs` that this [Aer] is
     /// in reference to.
-    pub fn to_lle<CoordinateSystem, LLEAngularMeasure>(
+    pub fn to_lle<CoordinateSystem, LleAngularMeasure>(
         &self,
-        obs: &LLE<CoordinateSystem, LLEAngularMeasure>,
-    ) -> LLE<CoordinateSystem, LLEAngularMeasure>
+        obs: &Lle<CoordinateSystem, LleAngularMeasure>,
+    ) -> Lle<CoordinateSystem, LleAngularMeasure>
     where
-        Radians: From<LLEAngularMeasure> + Copy,
-        LLEAngularMeasure: From<Radians> + Copy,
-        CoordinateSystem: crate::CoordinateSystem<LLEAngularMeasure>,
+        Radians: From<LleAngularMeasure> + Copy,
+        LleAngularMeasure: From<Radians> + Copy,
+        CoordinateSystem: crate::CoordinateSystem<LleAngularMeasure>,
     {
-        let enu: ENU = (*self).into();
+        let enu: Enu = (*self).into();
         enu.to_lle(obs)
     }
 }
@@ -437,9 +447,9 @@ where
 // conversions. If I need to add a new angle type, this should all be
 // turned into macros. It's the literal same code.
 
-impl From<AER<Degrees>> for AER<Radians> {
-    /// Convert an [AER] in [Degrees] into [Radians]
-    fn from(aer: AER<Degrees>) -> Self {
+impl From<Aer<Degrees>> for Aer<Radians> {
+    /// Convert an [Aer] in [Degrees] into [Radians]
+    fn from(aer: Aer<Degrees>) -> Self {
         Self {
             azimuth: aer.azimuth.into(),
             elevation: aer.elevation.into(),
@@ -448,9 +458,9 @@ impl From<AER<Degrees>> for AER<Radians> {
     }
 }
 
-impl From<AER<Radians>> for AER<Degrees> {
-    /// Convert an [AER] in [Radians] into [Degrees].
-    fn from(aer: AER<Radians>) -> Self {
+impl From<Aer<Radians>> for Aer<Degrees> {
+    /// Convert an [Aer] in [Radians] into [Degrees].
+    fn from(aer: Aer<Radians>) -> Self {
         Self {
             azimuth: aer.azimuth.into(),
             elevation: aer.elevation.into(),
@@ -459,18 +469,18 @@ impl From<AER<Radians>> for AER<Degrees> {
     }
 }
 
-// Implement conversions from AER -> ENU; for Radians and Degrees. Again,
+// Implement conversions from Aer -> Enu; for Radians and Degrees. Again,
 // this can't be done easily using generics, so I'm just going to make it
 // explicit.
 
-impl From<AER<Radians>> for ENU {
-    /// Convert to [ENU] cartesian local tangent plane coordinates from an
-    /// [AER] local tangent plane angular measurement in [Radians].
-    fn from(aer: AER<Radians>) -> Self {
+impl From<Aer<Radians>> for Enu {
+    /// Convert to [Enu] cartesian local tangent plane coordinates from an
+    /// [Aer] local tangent plane angular measurement in [Radians].
+    fn from(aer: Aer<Radians>) -> Self {
         let az_rad: Radians = aer.azimuth;
         let el_rad: Radians = aer.elevation;
         let r = Meters::new(aer.range.as_float() * el_rad.as_float().cos());
-        ENU {
+        Enu {
             east: Meters::new(r.as_float() * az_rad.as_float().sin()),
             north: Meters::new(r.as_float() * az_rad.as_float().cos()),
             up: Meters::new(aer.range.as_float() * el_rad.as_float().sin()),
@@ -478,20 +488,20 @@ impl From<AER<Radians>> for ENU {
     }
 }
 
-impl From<AER<Degrees>> for ENU {
-    /// Convert to [ENU] cartesian local tangent plane coordinates from an
-    /// [AER] local tangent plane angular measurement in [Degrees].
-    fn from(aer: AER<Degrees>) -> Self {
-        let aer: AER<Radians> = aer.into();
+impl From<Aer<Degrees>> for Enu {
+    /// Convert to [Enu] cartesian local tangent plane coordinates from an
+    /// [Aer] local tangent plane angular measurement in [Degrees].
+    fn from(aer: Aer<Degrees>) -> Self {
+        let aer: Aer<Radians> = aer.into();
         aer.into()
     }
 }
 
-/// [ENU] is East, North, Up in Meters.
+/// [Enu] is East, North, Up in Meters.
 ///
 /// East-North-Up are cartesian coordinates rooted at some reference
 /// point's local tangent plane. That reference location is not included in
-/// the [ENU] struct, so re-contextualizing an [ENU] to a [LLE] or [XYZ]
+/// the [Enu] struct, so re-contextualizing an [Enu] to a [Lle] or [Xyz]
 /// requires knowing the point at which the observation was taken from or
 /// was in reference to.
 ///
@@ -500,7 +510,7 @@ impl From<AER<Degrees>> for ENU {
 /// curve of the Earth -- so you'll slowly get further and further away from
 /// Earth's surface.
 #[derive(Debug, Copy, Clone, PartialEq)]
-pub struct ENU {
+pub struct Enu {
     /// East is the distance in the easterly direction on some local tangent
     /// plane reference. This may be negative to indicate a westerly
     /// distance.
@@ -517,31 +527,36 @@ pub struct ENU {
     pub up: Meters,
 }
 
-impl ENU {
+/// Alias for [Enu]. This struct was renamed to better match Rust style,
+/// and this alias will be removed in a future release.
+#[deprecated]
+pub type ENU = Enu;
+
+impl Enu {
     /// Take some observation (`self`), and contextualize it into some
-    /// absolute [LLE] given some reference point `obs` that this [AER]
+    /// absolute [Lle] given some reference point `obs` that this [Aer]
     /// is in reference to.
-    pub fn to_lle<CoordinateSystem, LLEAngularMeasure>(
+    pub fn to_lle<CoordinateSystem, LleAngularMeasure>(
         &self,
-        obs: &LLE<CoordinateSystem, LLEAngularMeasure>,
-    ) -> LLE<CoordinateSystem, LLEAngularMeasure>
+        obs: &Lle<CoordinateSystem, LleAngularMeasure>,
+    ) -> Lle<CoordinateSystem, LleAngularMeasure>
     where
-        Radians: From<LLEAngularMeasure> + Copy,
-        LLEAngularMeasure: From<Radians> + Copy,
-        CoordinateSystem: crate::CoordinateSystem<LLEAngularMeasure>,
+        Radians: From<LleAngularMeasure> + Copy,
+        LleAngularMeasure: From<Radians> + Copy,
+        CoordinateSystem: crate::CoordinateSystem<LleAngularMeasure>,
     {
         CoordinateSystem::enu_to_lle(obs, self)
     }
 }
 
-// Implement conversions from AER -> ENU; for Radians and Degrees. Again,
+// Implement conversions from Aer -> Enu; for Radians and Degrees. Again,
 // this can't be done easily using generics, so I'm just going to make it
 // explicit.
 
-impl From<ENU> for AER<Radians> {
-    /// Convert to [AER] cartesian local tangent plane angular measurement in
-    /// [Radians] from [ENU] local tangent plane coordinates.
-    fn from(enu: ENU) -> Self {
+impl From<Enu> for Aer<Radians> {
+    /// Convert to [Aer] cartesian local tangent plane angular measurement in
+    /// [Radians] from [Enu] local tangent plane coordinates.
+    fn from(enu: Enu) -> Self {
         let r = (enu.east.as_float() * enu.east.as_float()
             + enu.north.as_float() * enu.north.as_float())
         .sqrt();
@@ -555,17 +570,17 @@ impl From<ENU> for AER<Radians> {
     }
 }
 
-impl From<ENU> for AER<Degrees> {
-    /// Convert to [AER] cartesian local tangent plane angular measurement in
-    /// [Degrees] from [ENU] local tangent plane coordinates.
-    fn from(enu: ENU) -> Self {
-        let aer: AER<Radians> = enu.into();
+impl From<Enu> for Aer<Degrees> {
+    /// Convert to [Aer] cartesian local tangent plane angular measurement in
+    /// [Degrees] from [Enu] local tangent plane coordinates.
+    fn from(enu: Enu) -> Self {
+        let aer: Aer<Radians> = enu.into();
         aer.into()
     }
 }
 
 /// [CoordinateSystem] is a trait to enable converstion between locations
-/// (usually Latitude and Longitude, in the form of [LLE] objects) to absolute
+/// (usually Latitude and Longitude, in the form of [Lle] objects) to absolute
 /// points in space and vice versa.
 ///
 /// Different systems have different measurements of Earth's surface, and
@@ -577,36 +592,36 @@ where
     AngularMeasure: From<Radians> + Copy,
     Self: Sized,
 {
-    /// Convert [XYZ] to [LLE] in our [CoordinateSystem].
-    fn xyz_to_lle(c: &XYZ) -> LLE<Self, AngularMeasure>;
+    /// Convert [Xyz] to [Lle] in our [CoordinateSystem].
+    fn xyz_to_lle(c: &Xyz) -> Lle<Self, AngularMeasure>;
 
-    /// Convert [XYZ] to [ENU], referenced to `refr` ([LLE]) in our
+    /// Convert [Xyz] to [Enu], referenced to `refr` ([Lle]) in our
     /// [CoordinateSystem].
-    fn xyz_to_enu(refr: &LLE<Self, AngularMeasure>, c: &XYZ) -> ENU;
+    fn xyz_to_enu(refr: &Lle<Self, AngularMeasure>, c: &Xyz) -> Enu;
 
-    /// Convert [ENU] to [XYZ], referenced to `refr` ([LLE]) in our
+    /// Convert [Enu] to [Xyz], referenced to `refr` ([Lle]) in our
     /// [CoordinateSystem].
-    fn enu_to_xyz(refr: &LLE<Self, AngularMeasure>, c: &ENU) -> XYZ;
+    fn enu_to_xyz(refr: &Lle<Self, AngularMeasure>, c: &Enu) -> Xyz;
 
-    /// Convert [LLE] to [XYZ] in our [CoordinateSystem].
-    fn lle_to_xyz(geo: &LLE<Self, AngularMeasure>) -> XYZ;
+    /// Convert [Lle] to [Xyz] in our [CoordinateSystem].
+    fn lle_to_xyz(geo: &Lle<Self, AngularMeasure>) -> Xyz;
 
-    /// Convert [ENU] to [LLE], referenced to `refr` ([LLE]) in our
+    /// Convert [Enu] to [Lle], referenced to `refr` ([Lle]) in our
     /// [CoordinateSystem].
-    fn enu_to_lle(refr: &LLE<Self, AngularMeasure>, c: &ENU) -> LLE<Self, AngularMeasure> {
+    fn enu_to_lle(refr: &Lle<Self, AngularMeasure>, c: &Enu) -> Lle<Self, AngularMeasure> {
         let xyz = Self::enu_to_xyz(refr, c);
         Self::xyz_to_lle(&xyz)
     }
 
-    /// Convert [LLE] to [ENU], referenced to `refr` ([LLE]) in our
+    /// Convert [Lle] to [Enu], referenced to `refr` ([Lle]) in our
     /// [CoordinateSystem].
-    fn lle_to_enu(r: &LLE<Self, AngularMeasure>, geo: &LLE<Self, AngularMeasure>) -> ENU {
+    fn lle_to_enu(r: &Lle<Self, AngularMeasure>, geo: &Lle<Self, AngularMeasure>) -> Enu {
         let xyz = Self::lle_to_xyz(geo);
         Self::xyz_to_enu(r, &xyz)
     }
 }
 
-impl<FromCoordinateSystem, FromAngularMeasure> LLE<FromCoordinateSystem, FromAngularMeasure>
+impl<FromCoordinateSystem, FromAngularMeasure> Lle<FromCoordinateSystem, FromAngularMeasure>
 where
     Radians: From<FromAngularMeasure> + Copy,
     FromAngularMeasure: From<Radians> + Copy,
@@ -623,7 +638,7 @@ where
     ///
     /// <div class="warning">
     /// It's not clear to me that, as things are implemented right now,
-    /// that <code>XYZ</code>'s <code>(0.0, 0.0, 0.0)</code> is the same
+    /// that <code>Xyz</code>'s <code>(0.0, 0.0, 0.0)</code> is the same
     /// exact point in space for all the <code>CoordinateSystem</code>s,
     /// although this library <u>will assume they are</u>. As such, I'm not
     /// confident these conversions are implemented properly, and
@@ -631,7 +646,7 @@ where
     /// </div>
     pub fn translate<ToCoordinateSystem, ToAngularMeasure>(
         &self,
-    ) -> LLE<ToCoordinateSystem, ToAngularMeasure>
+    ) -> Lle<ToCoordinateSystem, ToAngularMeasure>
     where
         Radians: From<ToAngularMeasure> + Copy,
         ToAngularMeasure: From<Radians> + Copy,

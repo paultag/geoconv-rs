@@ -1,18 +1,18 @@
-use geoconv::{AER, Degrees, LLE, Meters, Wgs84};
+use geoconv::{Aer, Degrees, Lle, Meters, Wgs84};
 
 fn main() {
-    let tea_party = LLE::<Wgs84>::new(
+    let tea_party = Lle::<Wgs84>::new(
         Degrees::new(42.352211),
         Degrees::new(-71.051315),
         Meters::new(0.0),
     );
-    let georges_island = LLE::<Wgs84>::new(
+    let georges_island = Lle::<Wgs84>::new(
         Degrees::new(42.320239),
         Degrees::new(-70.929482),
         Meters::new(100.0),
     );
 
-    let look: AER<Degrees> = tea_party.aer_to(&georges_island);
+    let look: Aer<Degrees> = tea_party.aer_to(&georges_island);
     println!(
         "Azimuth: {} deg, Elevation: {} deg, Range: {} meters",
         look.azimuth.as_float(),
