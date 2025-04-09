@@ -283,6 +283,11 @@ where
     pub elevation: Meters,
 }
 
+/// Alias for [LLE]. This struct was renamed to better match Rust style,
+/// and this alias will be removed in a future release.
+#[deprecated]
+pub type LLE<CoordinateSystem> = Lle<CoordinateSystem>;
+
 impl<CoordinateSystem, AngularMeasure> Lle<CoordinateSystem, AngularMeasure>
 where
     Radians: From<AngularMeasure> + Copy,
