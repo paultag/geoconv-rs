@@ -25,3 +25,7 @@ better approach for distance. If both points are line-of-sight, you likely
 care more about using the local tangent plane to work out the Range
 to the target in 3-space by converting both lat/lons to Earth-North-Up or
 an Azimuth/Elevation/Range.
+
+# `no_std`
+
+This module is `no_std`, using `libm` for the underlying math.

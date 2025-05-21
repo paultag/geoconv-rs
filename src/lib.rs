@@ -85,6 +85,10 @@
 //! tangent plane -- for instance, what the bearing (azimuth), elevation (up
 //! and down) and range to the "other" point is from where "we" are.
 //!
+//! # `no_std`
+//!
+//! This module is `no_std`, using `libm` for the underlying math.
+//!
 //! ```rust
 //! use geoconv::{Lle, Wgs84, Degrees, Meters, Aer};
 //!
