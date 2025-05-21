@@ -19,6 +19,7 @@
 // THE SOFTWARE. }}}
 
 use crate::{CoordinateSystem, Enu, Lle, Meters, Radians, Xyz};
+use libm::{atan2, cos, sin, sqrt};
 
 /// Wgs ("World Geodetic System") is a set of standards published and maintained
 /// by the United States National Geospatial-Intelligence Agency.
@@ -49,11 +50,11 @@ where
         let lambda = lambda.as_float();
         let phi = phi.as_float();
 
-        let sin_lambda = lambda.sin();
-        let cos_lambda = lambda.cos();
-        let sin_phi = phi.sin();
-        let cos_phi = phi.cos();
-        let n = Self::A / (1.0 - Self::E_SQ * sin_lambda * sin_lambda).sqrt();
+        let sin_lambda = sin(lambda);
+        let cos_lambda = cos(lambda);
+        let sin_phi = sin(phi);
+        let cos_phi = cos(phi);
+        let n = Self::A / sqrt(1.0 - Self::E_SQ * sin_lambda * sin_lambda);
 
         Xyz {
             x: Meters::new((g.elevation.as_float() + n) * cos_lambda * cos_phi),
@@ -64,20 +65,22 @@ where
 
     fn xyz_to_lle(x: &Xyz) -> Lle<Self, AngularMeasure> {
         let eps = Self::E_SQ / (1.0 - Self::E_SQ);
-        let p = (x.x.as_float() * x.x.as_float() + x.y.as_float() * x.y.as_float()).sqrt();
-        let q = (x.z.as_float() * Self::A).atan2(p * Self::B);
+        let p = sqrt(x.x.as_float() * x.x.as_float() + x.y.as_float() * x.y.as_float());
+        let q = atan2(x.z.as_float() * Self::A, p * Self::B);
 
-        let sin_q = q.sin();
-        let cos_q = q.cos();
+        let sin_q = sin(q);
+        let cos_q = cos(q);
 
         let sin_q_3 = sin_q * sin_q * sin_q;
         let cos_q_3 = cos_q * cos_q * cos_q;
 
-        let phi =
-            (x.z.as_float() + eps * Self::B * sin_q_3).atan2(p - Self::E_SQ * Self::A * cos_q_3);
-        let lambda = x.y.as_float().atan2(x.x.as_float());
-        let v = Self::A / (1.0 - Self::E_SQ * phi.sin() * phi.sin()).sqrt();
-        let h = Meters::new((p / phi.cos()) - v);
+        let phi = atan2(
+            x.z.as_float() + eps * Self::B * sin_q_3,
+            p - Self::E_SQ * Self::A * cos_q_3,
+        );
+        let lambda = atan2(x.y.as_float(), x.x.as_float());
+        let v = Self::A / sqrt(1.0 - Self::E_SQ * sin(phi) * sin(phi));
+        let h = Meters::new((p / cos(phi)) - v);
 
         Lle::<Self, AngularMeasure>::new(Radians::new(phi).into(), Radians::new(lambda).into(), h)
     }
@@ -88,10 +91,10 @@ where
         let lambda = lambda.as_float();
         let phi = phi.as_float();
 
-        let sin_lambda = lambda.sin();
-        let cos_lambda = lambda.cos();
-        let sin_phi = phi.sin();
-        let cos_phi = phi.cos();
+        let sin_lambda = sin(lambda);
+        let cos_lambda = cos(lambda);
+        let sin_phi = sin(phi);
+        let cos_phi = cos(phi);
 
         let xref = Self::lle_to_xyz(g);
         let xd = x.x.as_float() - xref.x.as_float();
@@ -115,11 +118,11 @@ where
         let lambda = lambda.as_float();
         let phi = phi.as_float();
 
-        let sin_lambda = lambda.sin();
-        let cos_lambda = lambda.cos();
-        let sin_phi = phi.sin();
-        let cos_phi = phi.cos();
-        let n = Self::A / (1.0 - Self::E_SQ * sin_lambda * sin_lambda).sqrt();
+        let sin_lambda = sin(lambda);
+        let cos_lambda = cos(lambda);
+        let sin_phi = sin(phi);
+        let cos_phi = cos(phi);
+        let n = Self::A / sqrt(1.0 - Self::E_SQ * sin_lambda * sin_lambda);
 
         let x0 = (g.elevation.as_float() + n) * cos_lambda * cos_phi;
         let y0 = (g.elevation.as_float() + n) * cos_lambda * sin_phi;

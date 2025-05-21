@@ -22,8 +22,10 @@
 //! used by amateur radio operators. These are usually either 4 or 6 bytes
 //! long, with increasing precision as the number of bytes increases.
 
-use super::{Degrees, Lle, Meters, Wgs84};
-use std::ops::Range;
+use super::{
+    std::{self, ops::Range},
+    Degrees, Lle, Meters, Wgs84,
+};
 
 /// A Maidenhead Grid Locator is the actual location somewhere on earth. They
 /// look something like `BL11bh` or `FM18`. The more digits, the more precision

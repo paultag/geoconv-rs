@@ -27,6 +27,7 @@
 #![deny(unused_qualifications)]
 #![deny(rustdoc::broken_intra_doc_links)]
 #![deny(rustdoc::private_intra_doc_links)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 //! `geoconv` implements support for converting between some basic coordinate
 //! systems. This package contains support for [Wgs84]
@@ -178,6 +179,18 @@ mod wgs84;
 pub use wgs72::Wgs72;
 pub use wgs84::Wgs84;
 
+#[cfg(feature = "std")]
+pub(crate) mod std {
+    pub use std::*;
+}
+
+#[cfg(not(feature = "std"))]
+pub(crate) mod std {
+    // pub use alloc::*;
+    pub use core::*;
+}
+
+use libm::{atan2, cos, pow, sin, sqrt};
 use std::marker::PhantomData;
 
 /// [Meters] represent the SI unit of measure, Meter
@@ -484,11 +497,11 @@ impl From<Aer<Radians>> for Enu {
     fn from(aer: Aer<Radians>) -> Self {
         let az_rad: Radians = aer.azimuth;
         let el_rad: Radians = aer.elevation;
-        let r = Meters::new(aer.range.as_float() * el_rad.as_float().cos());
+        let r = Meters::new(aer.range.as_float() * cos(el_rad.as_float()));
         Enu {
-            east: Meters::new(r.as_float() * az_rad.as_float().sin()),
-            north: Meters::new(r.as_float() * az_rad.as_float().cos()),
-            up: Meters::new(aer.range.as_float() * el_rad.as_float().sin()),
+            east: Meters::new(r.as_float() * sin(az_rad.as_float())),
+            north: Meters::new(r.as_float() * cos(az_rad.as_float())),
+            up: Meters::new(aer.range.as_float() * sin(el_rad.as_float())),
         }
     }
 }
@@ -562,15 +575,15 @@ impl From<Enu> for Aer<Radians> {
     /// Convert to [Aer] cartesian local tangent plane angular measurement in
     /// [Radians] from [Enu] local tangent plane coordinates.
     fn from(enu: Enu) -> Self {
-        let r = (enu.east.as_float() * enu.east.as_float()
-            + enu.north.as_float() * enu.north.as_float())
-        .sqrt();
+        let r = sqrt(
+            enu.east.as_float() * enu.east.as_float() + enu.north.as_float() * enu.north.as_float(),
+        );
 
         let tau = std::f64::consts::PI * 2.0;
         Self {
-            azimuth: Radians::new(enu.east.as_float().atan2(enu.north.as_float()) % tau),
-            elevation: Radians::new(enu.up.as_float().atan2(r)),
-            range: Meters::new((r * r + enu.up.as_float() * enu.up.as_float()).sqrt()),
+            azimuth: Radians::new(atan2(enu.east.as_float(), enu.north.as_float()) % tau),
+            elevation: Radians::new(atan2(enu.up.as_float(), r)),
+            range: Meters::new(sqrt(r * r + enu.up.as_float() * enu.up.as_float())),
         }
     }
 }
@@ -720,9 +733,9 @@ where
         (other_lat, _other_lon),
     ) = angular_measure_to_radian_delta(self_lat_lon, other_lat_lon);
 
-    let a = (delta_lat / 2.0).sin().powf(2.0)
-        + self_lat.cos() * other_lat.cos() * (delta_lon / 2.0).sin().powf(2.0);
-    let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
+    let a = pow(sin(delta_lat / 2.0), 2.0)
+        + cos(self_lat) * cos(other_lat) * pow(sin(delta_lon / 2.0), 2.0);
+    let c = 2.0 * atan2(sqrt(a), sqrt(1.0 - a));
 
     Meters::new(EARTH_RADIUS.as_float() * c)
 }
@@ -745,10 +758,10 @@ where
         (other_lat, _other_lon),
     ) = angular_measure_to_radian_delta(self_lat_lon, other_lat_lon);
 
-    let x = self_lat.cos() * other_lat.sin() - self_lat.sin() * other_lat.cos() * delta_lon.cos();
-    let y = delta_lon.sin() * other_lat.cos();
+    let x = cos(self_lat) * sin(other_lat) - sin(self_lat) * cos(other_lat) * cos(delta_lon);
+    let y = sin(delta_lon) * cos(other_lat);
 
-    Radians::new(y.atan2(x) + std::f64::consts::PI).into()
+    Radians::new(atan2(y, x) + std::f64::consts::PI).into()
 }
 
 #[cfg(test)]
