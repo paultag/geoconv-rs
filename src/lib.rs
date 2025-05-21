@@ -27,7 +27,7 @@
 #![deny(unused_qualifications)]
 #![deny(rustdoc::broken_intra_doc_links)]
 #![deny(rustdoc::private_intra_doc_links)]
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 //! `geoconv` implements support for converting between some basic coordinate
 //! systems. This package contains support for [Wgs84]
@@ -84,10 +84,6 @@
 //! and figure out where another [Lle] point is in reference to our local
 //! tangent plane -- for instance, what the bearing (azimuth), elevation (up
 //! and down) and range to the "other" point is from where "we" are.
-//!
-//! # `no_std`
-//!
-//! This module is `no_std`, using `libm` for the underlying math.
 //!
 //! ```rust
 //! use geoconv::{Lle, Wgs84, Degrees, Meters, Aer};
@@ -188,7 +184,37 @@ pub(crate) mod std {
     pub use core::*;
 }
 
-use libm::{atan2, cos, pow, sin, sqrt};
+pub(crate) mod math {
+    #[cfg(feature = "libm")]
+    pub use libm::{atan2, cos, pow, sin, sqrt};
+
+    #[cfg(all(not(feature = "libm"), feature = "std"))]
+    mod _std_math {
+        pub fn cos(x: f64) -> f64 {
+            x.cos()
+        }
+        pub fn sin(x: f64) -> f64 {
+            x.sin()
+        }
+        pub fn sqrt(x: f64) -> f64 {
+            x.sqrt()
+        }
+        pub fn atan2(x: f64, y: f64) -> f64 {
+            x.atan2(y)
+        }
+        pub fn pow(x: f64, y: f64) -> f64 {
+            x.powf(y)
+        }
+    }
+
+    #[cfg(all(not(feature = "libm"), feature = "std"))]
+    pub use _std_math::*;
+
+    #[cfg(not(any(feature = "std", feature = "libm")))]
+    compile_error!("need one of libm or std for a math backend");
+}
+
+use math::{atan2, cos, pow, sin, sqrt};
 use std::marker::PhantomData;
 
 /// [Meters] represent the SI unit of measure, Meter

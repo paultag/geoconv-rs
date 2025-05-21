@@ -24,7 +24,8 @@ jobs:
       matrix:
         flags: [
           "--all-features",
-          "--no-default-features --features ''"
+          "--no-default-features --features 'std'",
+          "--no-default-features --features 'libm'"
         ]
     steps:
       - uses: actions/checkout@v4

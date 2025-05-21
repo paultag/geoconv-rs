@@ -18,8 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE. }}}
 
-use crate::{CoordinateSystem, Enu, Lle, Meters, Radians, Xyz};
-use libm::{atan2, cos, sin, sqrt};
+use crate::{
+    CoordinateSystem, Enu, Lle, Meters, Radians, Xyz,
+    math::{atan2, cos, sin, sqrt},
+};
 
 /// Wgs ("World Geodetic System") is a set of standards published and maintained
 /// by the United States National Geospatial-Intelligence Agency.
