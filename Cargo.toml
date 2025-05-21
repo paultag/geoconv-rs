@@ -8,6 +8,7 @@ repository = "https://github.com/paultag/geoconv-rs"
 description = "convert between different coordinate systems"
 
 [features]
+default = ["std"]
 std = []
 
 [dependencies]
