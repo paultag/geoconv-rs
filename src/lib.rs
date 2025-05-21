@@ -27,7 +27,7 @@
 #![deny(unused_qualifications)]
 #![deny(rustdoc::broken_intra_doc_links)]
 #![deny(rustdoc::private_intra_doc_links)]
-#![cfg_attr(not(feature = "std"), no_std)]
+#![no_std]
 
 //! `geoconv` implements support for converting between some basic coordinate
 //! systems. This package contains support for [Wgs84]
@@ -179,12 +179,6 @@ mod wgs84;
 pub use wgs72::Wgs72;
 pub use wgs84::Wgs84;
 
-#[cfg(feature = "std")]
-pub(crate) mod std {
-    pub use std::*;
-}
-
-#[cfg(not(feature = "std"))]
 pub(crate) mod std {
     // pub use alloc::*;
     pub use core::*;

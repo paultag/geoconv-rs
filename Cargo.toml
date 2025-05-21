@@ -7,9 +7,5 @@ authors = ["Paul Tagliamonte <paultag@gmail.com>"]
 repository = "https://github.com/paultag/geoconv-rs"
 description = "convert between different coordinate systems"
 
-[features]
-default = ["std"]
-std = []
-
 [dependencies]
 libm = "0.2"
