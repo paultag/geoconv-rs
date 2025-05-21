@@ -23,8 +23,8 @@
 //! long, with increasing precision as the number of bytes increases.
 
 use super::{
-    std::{self, ops::Range},
     Degrees, Lle, Meters, Wgs84,
+    std::{self, ops::Range},
 };
 
 /// A Maidenhead Grid Locator is the actual location somewhere on earth. They
