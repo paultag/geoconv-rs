@@ -785,8 +785,7 @@ where
     let x = cos(self_lat) * sin(other_lat) - sin(self_lat) * cos(other_lat) * cos(delta_lon);
     let y = sin(delta_lon) * cos(other_lat);
 
-    let pi2 = 2.0 * std::f64::consts::PI;
-    Radians::new((atan2(y, x) + pi2) % pi2).into()
+    Radians::new((atan2(y, x) + std::f64::consts::TAU) % std::f64::consts::TAU).into()
 }
 
 #[cfg(test)]
