@@ -716,8 +716,8 @@ where
     let (other_lat, other_lon): (Radians, Radians) = (other_lat.into(), other_lon.into());
     let (other_lat, other_lon) = (other_lat.as_float(), other_lon.as_float());
 
-    let delta_lat = self_lat - other_lat;
-    let delta_lon = self_lon - other_lon;
+    let delta_lat = other_lat - self_lat;
+    let delta_lon = other_lon - self_lon;
 
     (
         (delta_lat, delta_lon),
@@ -785,7 +785,8 @@ where
     let x = cos(self_lat) * sin(other_lat) - sin(self_lat) * cos(other_lat) * cos(delta_lon);
     let y = sin(delta_lon) * cos(other_lat);
 
-    Radians::new(atan2(y, x) + std::f64::consts::PI).into()
+    let pi2 = 2.0 * std::f64::consts::PI;
+    Radians::new((atan2(y, x) + pi2) % pi2).into()
 }
 
 #[cfg(test)]
@@ -842,6 +843,13 @@ mod tests {
             (Degrees::new(0.0), Degrees::new(-88.0)),
         );
         assert_in_eps!(270.0, result.as_float(), 1e-6);
+
+        // the US Supreme Court building to The White House 🇺🇸
+        let result = bearing(
+            (Degrees::new(38.890591), Degrees::new(-77.004745)),
+            (Degrees::new(38.897957), Degrees::new(-77.036560)),
+        );
+        assert_in_eps!(286.576, result.as_float(), 1e-3);
     }
 }
 
