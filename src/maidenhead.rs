@@ -146,6 +146,18 @@ mod test {
         assert_eq!(-0.7916666666666856, center.longitude.as_float());
         assert_eq!(53.0625, center.latitude.as_float());
     }
+
+    #[test]
+    fn test_corners() {
+        let grid: Grid<6> = "IO93ob".parse().unwrap();
+        let [tl, br] = grid.corners_lat_lon().unwrap();
+
+        assert_eq!(-0.8333333333333428, tl.longitude.as_float());
+        assert_eq!(53.04166666666666, tl.latitude.as_float());
+
+        assert_eq!(-0.75, br.longitude.as_float());
+        assert_eq!(53.083333333333314, br.latitude.as_float());
+    }
 }
 
 // vim: foldmethod=marker
