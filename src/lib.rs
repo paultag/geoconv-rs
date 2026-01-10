@@ -603,7 +603,7 @@ impl From<Enu> for Aer<Radians> {
             enu.east.as_float() * enu.east.as_float() + enu.north.as_float() * enu.north.as_float(),
         );
 
-        let tau = std::f64::consts::PI * 2.0;
+        let tau = std::f64::consts::TAU;
         Self {
             azimuth: Radians::new(atan2(enu.east.as_float(), enu.north.as_float()) % tau),
             elevation: Radians::new(atan2(enu.up.as_float(), r)),
@@ -849,6 +849,49 @@ mod tests {
             (Degrees::new(38.897957), Degrees::new(-77.036560)),
         );
         assert_in_eps!(286.576, result.as_float(), 1e-3);
+    }
+
+    #[test]
+    fn enu_aer_round_trip() {
+        let enu = Enu {
+            east: Meters(1.0),
+            north: Meters(0.0),
+            up: Meters(0.0),
+        };
+        let aer: Aer = enu.into();
+        assert_in_eps!(1.0, aer.range.as_float(), 1e-6);
+        assert_in_eps!(90.0, aer.azimuth.as_float(), 1e-6);
+        assert_in_eps!(0.0, aer.elevation.as_float(), 1e-6);
+
+        let enu = Enu {
+            east: Meters(0.0),
+            north: Meters(1.0),
+            up: Meters(0.0),
+        };
+        let aer: Aer = enu.into();
+        assert_in_eps!(1.0, aer.range.as_float(), 1e-6);
+        assert_in_eps!(0.0, aer.azimuth.as_float(), 1e-6);
+        assert_in_eps!(0.0, aer.elevation.as_float(), 1e-6);
+
+        let enu = Enu {
+            east: Meters(0.0),
+            north: Meters(0.0),
+            up: Meters(1.0),
+        };
+        let aer: Aer = enu.into();
+        assert_in_eps!(1.0, aer.range.as_float(), 1e-6);
+        assert_in_eps!(0.0, aer.azimuth.as_float(), 1e-6);
+        assert_in_eps!(90.0, aer.elevation.as_float(), 1e-6);
+
+        let enu = Enu {
+            east: Meters(0.0),
+            north: Meters(0.0),
+            up: Meters(-1.0),
+        };
+        let aer: Aer = enu.into();
+        assert_in_eps!(1.0, aer.range.as_float(), 1e-6);
+        assert_in_eps!(0.0, aer.azimuth.as_float(), 1e-6);
+        assert_in_eps!(-90.0, aer.elevation.as_float(), 1e-6);
     }
 }
 
