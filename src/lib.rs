@@ -320,7 +320,7 @@ where
     pub elevation: Meters,
 }
 
-/// Alias for [LLE]. This struct was renamed to better match Rust style,
+/// Alias for [Lle]. This struct was renamed to better match Rust style,
 /// and this alias will be removed in a future release.
 #[deprecated]
 pub type LLE<CoordinateSystem> = Lle<CoordinateSystem>;
@@ -389,7 +389,7 @@ pub struct Xyz {
     pub z: Meters,
 }
 
-/// Alias for [XYZ]. This struct was renamed to better match Rust style,
+/// Alias for [Xyz]. This struct was renamed to better match Rust style,
 /// and this alias will be removed in a future release.
 #[deprecated]
 pub type XYZ = Xyz;
@@ -453,7 +453,7 @@ pub struct Aer<AngularMeasure = Degrees> {
     pub range: Meters,
 }
 
-/// Alias for [AER]. This struct was renamed to better match Rust style,
+/// Alias for [Aer]. This struct was renamed to better match Rust style,
 /// and this alias will be removed in a future release.
 #[deprecated]
 pub type AER = Aer;
