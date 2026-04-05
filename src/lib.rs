@@ -206,7 +206,7 @@ pub(crate) mod math {
             x.powf(y)
         }
         pub fn round(x: f64) -> f64 {
-            x.round(y)
+            x.round()
         }
     }
 
