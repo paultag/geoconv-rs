@@ -251,6 +251,18 @@ impl Degrees {
     pub const fn as_float(self) -> f64 {
         self.0
     }
+
+    /// Return the Latitude and Longitude (in that order) to Degrees,
+    /// Minutes, and Seconds.
+    pub fn as_dms(&self) -> (i64, i64, f64) {
+        let v = self.0;
+
+        let degrees = v;
+        let minutes = (degrees - v.round()) * 60.0;
+        let seconds = (minutes - minutes.round()) * 60.0;
+
+        (degrees as i64, minutes as i64, seconds)
+    }
 }
 
 impl From<Degrees> for Radians {
@@ -361,6 +373,17 @@ where
         Aer<AerAngularMeasure>: From<Enu>,
     {
         self.enu_to(other).into()
+    }
+}
+
+impl<CoordinateSystem> Lle<CoordinateSystem>
+where
+    CoordinateSystem: crate::CoordinateSystem<Degrees>,
+{
+    /// Return the latitude and longitude (in that order) as Degrees,
+    /// Minutes, Seconds.
+    pub fn as_dms(&self) -> [(i64, i64, f64); 2] {
+        [self.latitude.as_dms(), self.longitude.as_dms()]
     }
 }
 
@@ -810,6 +833,13 @@ mod tests {
                 panic!("{} is not ~= to {}", $x, $y);
             }
         };
+    }
+
+    #[test]
+    fn degrees_as_dms() {
+        let (dec, min, sec) = Degrees::new(42.15188).as_dms();
+        assert_eq!((42, 9), (dec, min));
+        assert_in_eps!(6.768, sec, 1e-3);
     }
 
     #[test]
