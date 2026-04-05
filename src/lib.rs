@@ -186,7 +186,7 @@ pub(crate) mod std {
 
 pub(crate) mod math {
     #[cfg(feature = "libm")]
-    pub use libm::{atan2, cos, pow, sin, sqrt};
+    pub use libm::{atan2, cos, pow, round, sin, sqrt};
 
     #[cfg(all(not(feature = "libm"), feature = "std"))]
     mod _std_math {
@@ -204,6 +204,9 @@ pub(crate) mod math {
         }
         pub fn pow(x: f64, y: f64) -> f64 {
             x.powf(y)
+        }
+        pub fn round(x: f64) -> f64 {
+            x.round(y)
         }
     }
 
@@ -258,8 +261,8 @@ impl Degrees {
         let v = self.0;
 
         let degrees = v;
-        let minutes = (degrees - v.round()) * 60.0;
-        let seconds = (minutes - minutes.round()) * 60.0;
+        let minutes = (degrees - math::round(v)) * 60.0;
+        let seconds = (minutes - math::round(minutes)) * 60.0;
 
         (degrees as i64, minutes as i64, seconds)
     }
