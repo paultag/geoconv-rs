@@ -255,8 +255,7 @@ impl Degrees {
         self.0
     }
 
-    /// Return the Latitude and Longitude (in that order) to Degrees,
-    /// Minutes, and Seconds.
+    /// Return the Degrees split into Degrees (°), Minutes (') and Seconds (")
     pub fn as_dms(&self) -> (i64, i64, f64) {
         let v = self.0;
 
