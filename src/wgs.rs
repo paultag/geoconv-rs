@@ -126,11 +126,8 @@ where
         let cos_phi = cos(phi);
         let sin_lambda = sin(lambda);
         let cos_lambda = cos(lambda);
-        let n = Self::A / sqrt(1.0 - Self::E_SQ * sin_phi * sin_phi);
 
-        let x0 = (g.elevation.as_float() + n) * cos_phi * cos_lambda;
-        let y0 = (g.elevation.as_float() + n) * cos_phi * sin_lambda;
-        let z0 = (g.elevation.as_float() + (1.0 - Self::E_SQ) * n) * sin_phi;
+        let xref = Self::lle_to_xyz(g);
 
         let east = lt.east.as_float();
         let north = lt.north.as_float();
@@ -140,9 +137,9 @@ where
         let yd = cos_lambda * east - sin_phi * sin_lambda * north + cos_phi * sin_lambda * up;
         let zd = cos_phi * north + sin_phi * up;
 
-        let x = xd + x0;
-        let y = yd + y0;
-        let z = zd + z0;
+        let x = xd + xref.x.as_float();
+        let y = yd + xref.y.as_float();
+        let z = zd + xref.z.as_float();
 
         Xyz {
             x: Meters::new(x),
