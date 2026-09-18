@@ -47,21 +47,21 @@ where
     T: Wgs,
 {
     fn lle_to_xyz(g: &Lle<Self, AngularMeasure>) -> Xyz {
-        let lambda: Radians = g.latitude.into();
-        let phi: Radians = g.longitude.into();
-        let lambda = lambda.as_float();
+        let phi: Radians = g.latitude.into();
+        let lambda: Radians = g.longitude.into();
         let phi = phi.as_float();
+        let lambda = lambda.as_float();
 
-        let sin_lambda = sin(lambda);
-        let cos_lambda = cos(lambda);
         let sin_phi = sin(phi);
         let cos_phi = cos(phi);
-        let n = Self::A / sqrt(1.0 - Self::E_SQ * sin_lambda * sin_lambda);
+        let sin_lambda = sin(lambda);
+        let cos_lambda = cos(lambda);
+        let n = Self::A / sqrt(1.0 - Self::E_SQ * sin_phi * sin_phi);
 
         Xyz {
-            x: Meters::new((g.elevation.as_float() + n) * cos_lambda * cos_phi),
-            y: Meters::new((g.elevation.as_float() + n) * cos_lambda * sin_phi),
-            z: Meters::new((g.elevation.as_float() + (1.0 - Self::E_SQ) * n) * sin_lambda),
+            x: Meters::new((g.elevation.as_float() + n) * cos_phi * cos_lambda),
+            y: Meters::new((g.elevation.as_float() + n) * cos_phi * sin_lambda),
+            z: Meters::new((g.elevation.as_float() + (1.0 - Self::E_SQ) * n) * sin_phi),
         }
     }
 
@@ -88,15 +88,15 @@ where
     }
 
     fn xyz_to_enu(g: &Lle<Self, AngularMeasure>, x: &Xyz) -> Enu {
-        let lambda: Radians = g.latitude.into();
-        let phi: Radians = g.longitude.into();
-        let lambda = lambda.as_float();
+        let phi: Radians = g.latitude.into();
+        let lambda: Radians = g.longitude.into();
         let phi = phi.as_float();
+        let lambda = lambda.as_float();
 
-        let sin_lambda = sin(lambda);
-        let cos_lambda = cos(lambda);
         let sin_phi = sin(phi);
         let cos_phi = cos(phi);
+        let sin_lambda = sin(lambda);
+        let cos_lambda = cos(lambda);
 
         let xref = Self::lle_to_xyz(g);
         let xd = x.x.as_float() - xref.x.as_float();
@@ -104,39 +104,37 @@ where
         let zd = x.z.as_float() - xref.z.as_float();
 
         Enu {
-            east: Meters::new(-sin_phi * xd + cos_phi * yd),
+            east: Meters::new(-sin_lambda * xd + cos_lambda * yd),
             north: Meters::new(
-                -cos_phi * sin_lambda * xd - sin_lambda * sin_phi * yd + cos_lambda * zd,
+                -cos_lambda * sin_phi * xd - sin_phi * sin_lambda * yd + cos_phi * zd,
             ),
-            up: Meters::new(
-                cos_lambda * cos_phi * xd + cos_lambda * sin_phi * yd + sin_lambda * zd,
-            ),
+            up: Meters::new(cos_phi * cos_lambda * xd + cos_phi * sin_lambda * yd + sin_phi * zd),
         }
     }
 
     fn enu_to_xyz(g: &Lle<Self, AngularMeasure>, lt: &Enu) -> Xyz {
-        let lambda: Radians = g.latitude.into();
-        let phi: Radians = g.longitude.into();
-        let lambda = lambda.as_float();
+        let phi: Radians = g.latitude.into();
+        let lambda: Radians = g.longitude.into();
         let phi = phi.as_float();
+        let lambda = lambda.as_float();
 
-        let sin_lambda = sin(lambda);
-        let cos_lambda = cos(lambda);
         let sin_phi = sin(phi);
         let cos_phi = cos(phi);
-        let n = Self::A / sqrt(1.0 - Self::E_SQ * sin_lambda * sin_lambda);
+        let sin_lambda = sin(lambda);
+        let cos_lambda = cos(lambda);
+        let n = Self::A / sqrt(1.0 - Self::E_SQ * sin_phi * sin_phi);
 
-        let x0 = (g.elevation.as_float() + n) * cos_lambda * cos_phi;
-        let y0 = (g.elevation.as_float() + n) * cos_lambda * sin_phi;
-        let z0 = (g.elevation.as_float() + (1.0 - Self::E_SQ) * n) * sin_lambda;
+        let x0 = (g.elevation.as_float() + n) * cos_phi * cos_lambda;
+        let y0 = (g.elevation.as_float() + n) * cos_phi * sin_lambda;
+        let z0 = (g.elevation.as_float() + (1.0 - Self::E_SQ) * n) * sin_phi;
 
         let east = lt.east.as_float();
         let north = lt.north.as_float();
         let up = lt.up.as_float();
 
-        let xd = -sin_phi * east - cos_phi * sin_lambda * north + cos_lambda * cos_phi * up;
-        let yd = cos_phi * east - sin_lambda * sin_phi * north + cos_lambda * sin_phi * up;
-        let zd = cos_lambda * north + sin_lambda * up;
+        let xd = -sin_lambda * east - cos_lambda * sin_phi * north + cos_phi * cos_lambda * up;
+        let yd = cos_lambda * east - sin_phi * sin_lambda * north + cos_phi * sin_lambda * up;
+        let zd = cos_phi * north + sin_phi * up;
 
         let x = xd + x0;
         let y = yd + y0;
