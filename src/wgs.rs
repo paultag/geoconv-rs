@@ -82,7 +82,11 @@ where
         );
         let lambda = atan2(x.y.as_float(), x.x.as_float());
         let v = Self::A / sqrt(1.0 - Self::E_SQ * sin(phi) * sin(phi));
-        let h = Meters::new((p / cos(phi)) - v);
+        let h = if p < 1e-9 {
+            Meters::new(x.z.as_float().abs() - Self::B)
+        } else {
+            Meters::new((p / cos(phi)) - v)
+        };
 
         Lle::<Self, AngularMeasure>::new(Radians::new(phi).into(), Radians::new(lambda).into(), h)
     }

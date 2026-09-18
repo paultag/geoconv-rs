@@ -220,6 +220,25 @@ mod tests {
             1e-7
         );
     }
+
+    #[test]
+    fn xyz_to_lle_poles() {
+        let north_pole = Xyz {
+            x: Meters::new(0.0),
+            y: Meters::new(0.0),
+            z: Meters::new(Wgs84::A),
+        };
+        let lle_north: Wgs84Lle = Wgs84::xyz_to_lle(&north_pole);
+        assert_in_eps!(Wgs84::A - Wgs84::B, lle_north.elevation.as_float(), 1e-7);
+
+        let south_pole = Xyz {
+            x: Meters::new(0.0),
+            y: Meters::new(0.0),
+            z: Meters::new(-Wgs84::A),
+        };
+        let lle_south: Wgs84Lle = Wgs84::xyz_to_lle(&south_pole);
+        assert_in_eps!(Wgs84::A - Wgs84::B, lle_south.elevation.as_float(), 1e-7);
+    }
 }
 
 // vim: foldmethod=marker
